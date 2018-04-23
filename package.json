@@ -1,7 +1,7 @@
 {
-  "name": "base",
+  "name": "IntelligentTraffic",
   "version": "1.0.0",
-  "description": "base framework",
+  "description": "Intelligent Traffic",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
