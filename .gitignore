@@ -1,0 +1,6 @@
+.idea/
+node_modules/
+public/dist/bundle.js
+public/dist/bundle.css
+public/dist/index.html
+public/dist/
