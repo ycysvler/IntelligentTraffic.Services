@@ -28,6 +28,21 @@ module.exports = function (router) {
                 originalFilename = item.originalFilename;
             }
 
+            if(!fields.kakouid || !fields.kakouid[0]){
+                res.send(403,'Required parameter missing! [kakouid]');
+                return;
+            }
+
+            if(!fields.snaptime || !fields.snaptime[0]){
+                res.send(403,'Required parameter missing! [snaptime]');
+                return;
+            }
+
+            if(JSON.stringify(files) == "{}"){
+                res.send(403,'Required parameter missing! [image files]');
+                return;
+            }
+
             let file = path.resolve(resolvepath);
             fs.readFile(file, function (err, chunk) {
                 if (err)
@@ -38,8 +53,7 @@ module.exports = function (router) {
                 item.snaptime = moment(fields.snaptime[0]);
                 item.name = originalFilename;
                 item.source = chunk;
-                item.kakouid = fields.kakou[0].kakouid;
-                item.kakou = fields.kakou[0];
+                item.kakouid = fields.kakouid[0];
 
                 // 如果有类型和扩展信息，那就加上吧
                 item.state = 0; //新图像

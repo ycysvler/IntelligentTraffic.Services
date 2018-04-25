@@ -10,22 +10,11 @@ module.exports = class Schemas{
             console.log("intelligenttraffic mongodb connected!");
         });
 
-        this.userSchema = new mongoose.Schema({
-            userid: {type: String,index: true},     // 用户ID
-            mobile: {type: String,index: true},     // 手机号
-            password: String,                       // 密码
-            entid:{type: String,index: true},       // 企业ID
-            createtime:Date                         // 创建时间
-        });
-
-        this.User = conn.model('User', this.userSchema);
-
         // 原始图片信息
         this.imageSourceSchema = new mongoose.Schema({
             name: {type: String,index: {unique: true, dropDups: true}},       // 图片名称
             state:{type: Number,index: true},       //  状态 0:新图，1:正在计算特征，2：计算特征成功，-1：计算特征失败
             kakouid:{type: String, index: true},    //  卡口ID
-            kakou:Object,                           //  卡口信息（名称，经纬度等）
             source:Buffer,                          //  原始图像
             snaptime:Date,                          //  抓拍时间
             createtime:Date,                        //  创建时间
@@ -37,8 +26,9 @@ module.exports = class Schemas{
         // 车型分析结果
         this.analysisSchema = new mongoose.Schema({
             imageid:{type: mongoose.Schema.Types.ObjectId,index:true},      //  原始图片信息表的ID
-            name: {type: String,index: true},                               // 图片名称
-            kakou:Object,                                                   //  卡口信息（有可能需要被展开，用于查询，不展开没法建索引）
+            name: {type: String,index: true},                               //  图片名称
+            image:Buffer,                                                   //  识别区域抠图出来的图像
+            kakouid:{type: String, index: true},                            //  卡口ID
             vehiclezone:Object,                                             //  车辆检测 > 本信息在原图对应的区域
 
             platehasno:{type: Number,index: true},                          //  车牌识别 > 车牌有无
