@@ -38,6 +38,7 @@ module.exports = function (router) {
                 item.snaptime = moment(fields.snaptime[0]);
                 item.name = originalFilename;
                 item.source = chunk;
+                item.kakouid = fields.kakou[0].kakouid;
                 item.kakou = fields.kakou[0];
 
                 // 如果有类型和扩展信息，那就加上吧
@@ -59,7 +60,6 @@ module.exports = function (router) {
         });
     });
 
-
     // PaaS -> 查询 -> 业务信息
     router.get('/images/info/:date/:name', (req, res, next) => {
         // connect 使用 appid 换算出 entid
@@ -70,9 +70,9 @@ module.exports = function (router) {
             res.json(item);
         });
     });
+
     // PaaS -> 查询 -> 图片数据
     router.get('/images/data/:date/:name', (req, res, next) => {
-
         // connect 使用 appid 换算出 entid
         let date = req.params.date;
         let name = req.params.name;
