@@ -52,7 +52,7 @@ module.exports = function (router) {
         });
     });
 
-    // PaaS -> 查询 -> 车型识别 > 型号
+    // PaaS -> 查询 -> 车型识别 > 年款
     router.get('/vehicletype/vehicleyear/:vehiclemodel', (req, res, next) => {
 
         let vehiclemodel = req.params.vehiclemodel;
