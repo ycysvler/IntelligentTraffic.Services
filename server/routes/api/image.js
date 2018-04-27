@@ -63,7 +63,7 @@ module.exports = function (router) {
                     });
 
                     if (err) {
-                        res.send(500, err);
+                        res.send(500, err.errmsg);
                     }
                     else {
                         res.send(200, item._id);
