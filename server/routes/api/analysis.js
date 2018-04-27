@@ -102,13 +102,16 @@ module.exports = function (router) {
                     res.send(500, err);
                 }else{
                     let results = [];
+                    let temps = [];
                     for(let i in items){
                         results = results.concat(items[i]);
                     }
                     for(let i in results){
-                        results[i].address = "三峒大路石岗村";
+                        let item = JSON.parse(JSON.stringify( results[i]));
+                        item["address"] = "三峒大路石岗村";
+                        temps.push(item);
                     }
-                    res.json(200, results);
+                    res.json(200, temps);
                 }
             });
     });
