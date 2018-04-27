@@ -29,6 +29,18 @@ module.exports = class Schemas{
         });
         this.vehicletypeSchema.index({ vehicletype: 1, vehiclebrand:1, vehiclemaker: 1,vehiclemodel:1,vehicleyear:1  });
         this.VehicleType = conn.model('VehicleType', this.vehicletypeSchema,'vehicletype');
+
+        this.kakouSchema = new mongoose.Schema({
+            kakouid: {type: String,index: true},        // 卡口ID
+            name: {type: String,index: true},           // 卡口名称
+            address: String,                            // 卡口位置
+            lng:{type: Number,index: true},             // 地理经度
+            lat:{type: Number,index: true},             // 地理纬度
+            type:{type: Number,index: true},            // 卡口类型（预留字段  0：默认）
+            createtime:Date                             // 创建时间
+        });
+
+        this.Kakou = conn.model('Kakou', this.kakouSchema,'kakou');
     }
 }
 

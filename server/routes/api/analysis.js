@@ -57,4 +57,9 @@ module.exports = function (router) {
         });
     });
 
+    // 按车型搜索：品牌、型号、年款、车牌、时间、卡口ID
+    router.get('/analysis/info/:date/:id', (req, res, next) => {
+
+    });
+
 }
