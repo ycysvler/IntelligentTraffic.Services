@@ -60,7 +60,7 @@ module.exports = function (router) {
 
     // 按车型搜索：品牌、型号、年款、车牌、时间、卡口ID
     router.post('/analysis/search/1', (req, res, next) => {
-        let datas = ['20180501','20180502'];
+        let datas = ['20180501'];
 
         let param = {
             kakouid:{$in:req.body.kakouid},

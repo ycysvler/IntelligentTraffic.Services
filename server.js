@@ -85,4 +85,3 @@ app.listen(PORT, function() {
     console.log('intelligent traffice services running at localhost:' + PORT);
 });
 
-

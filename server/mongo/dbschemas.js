@@ -27,6 +27,7 @@ module.exports = class Schemas{
         this.analysisSchema = new mongoose.Schema({
             imageid:{type: mongoose.Schema.Types.ObjectId,index:true},      //  原始图片信息表的ID
             name: {type: String,index: true},                               //  图片名称
+            date:String,                                                    //  日期
             kakouid:{type: String, index: true},                            //  卡口ID
             vehiclezone:Object,                                             //  车辆检测 > 本信息在原图对应的区域
 
