@@ -4,7 +4,8 @@
 let multiparty = require('multiparty');
 let moment = require('moment');
 let uuid = require('uuid');
-var path = require('path');
+let path = require('path');
+let async = require('async');
 let fs = require('fs');
 let mongoose = require('mongoose');
 
@@ -20,8 +21,8 @@ module.exports = function (router) {
         let item = new Analysis();
 
         item.imageid = new mongoose.Types.ObjectId(body.imageid);
-        item.kakou = body.kakou;
         item.name = body.name;
+        item.kakouid= body.kakouid;
         item.vehiclezone = body.vehiclezone;
 
         item.platehasno = body.platehasno;
@@ -58,8 +59,54 @@ module.exports = function (router) {
     });
 
     // 按车型搜索：品牌、型号、年款、车牌、时间、卡口ID
-    router.get('/analysis/info/:date/:id', (req, res, next) => {
+    router.post('/analysis/search/1', (req, res, next) => {
+        let datas = ['20180501','20180502'];
 
+        let param = {
+            kakouid:{$in:req.body.kakouid},
+            platenumber:req.body.platenumber,
+            vehiclebrand:req.body.vehiclebrand,
+            vehiclemodel:req.body.vehiclemodel,
+            vehicleyear:req.body.vehicleyear,
+            vehiclemaker:req.body.vehiclemaker,
+            vehicletype:req.body.vehicletype
+        };
+
+        // 去掉无效查询条件
+        for(let name in param){
+
+            if(!req.body.hasOwnProperty(name) || req.body[name].length == 0){
+
+                delete param[name];
+            }
+        }
+
+
+        let asyncfn = [];
+
+        for(let i in datas){
+            let d = datas[i];
+            let fn = (callback)=>{
+                console.log('find in ', d);
+                let Analysis = getMongoPool(d).Analysis;
+                Analysis.find(param, function (err, item) {
+                    callback(err, item);
+                });
+            };
+            asyncfn.push(fn);
+        }
+
+        async.parallel(asyncfn,
+            (err, items)=>{
+                if(err){
+                    res.send(500, err);
+                }else{
+                    let results = [];
+                    for(let i in items){
+                        results = results.concat(items[i]);
+                    }
+                    res.json(200, results);
+                }
+            });
     });
-
 }

@@ -27,7 +27,6 @@ module.exports = class Schemas{
         this.analysisSchema = new mongoose.Schema({
             imageid:{type: mongoose.Schema.Types.ObjectId,index:true},      //  原始图片信息表的ID
             name: {type: String,index: true},                               //  图片名称
-            image:Buffer,                                                   //  识别区域抠图出来的图像
             kakouid:{type: String, index: true},                            //  卡口ID
             vehiclezone:Object,                                             //  车辆检测 > 本信息在原图对应的区域
 
@@ -76,7 +75,7 @@ module.exports = class Schemas{
             createtime:Date,                                                //  创建时间（计算完成车型信息的时间）
             extend:String                                                   //  扩展字段，放个大字符串
         });
-
+        this.analysisSchema.index({kakouid:1, vehicletype: 1, vehiclebrand:1, vehiclemaker: 1,vehiclemodel:1,vehicleyear:1,vehiclecolor:1  });
         this.Analysis = conn.model('Analysis', this.analysisSchema,'analysis');
     }
 }

@@ -101,6 +101,7 @@ module.exports = function (router) {
         });
     });
 
+
     // 淘汰接口
     router.put('/images/:name/extend', (req, res, next) => {
         // connect 使用 appid 换算出 entid
