@@ -11,6 +11,74 @@ let mongoose = require('mongoose');
 
 let getMongoPool = require('../../mongo/pool');
 
+
+
+
+class KakouLogic{
+    constructor(x, y) {
+        this.items = [];
+    }
+
+    async asyncGetKaKou(kakouid){
+        const result =  await this.getKakou(kakouid);
+
+        console.log("result", result);
+
+        return result;
+    }
+
+    getKakou(kakouid){
+        let self = this;
+
+        return new Promise((resolve, reject)=>{
+            let result = self.getKakouById(kakouid);
+
+            if(result)
+                resolve(result);
+            else{
+                self.initItems((items)=>{
+
+                    result = self.getKakouById(kakouid);
+                    resolve(result);
+                })
+            }
+        });
+    }
+
+    getKakouById(kakouid){
+        let result = null;
+
+        for(var i in this.items){
+
+            let kakou = this.items[i];
+
+            if(kakou.kakouid === kakouid)
+                result = kakou;
+        }
+
+
+        return result;
+    }
+
+    initItems(callback){
+        console.log('initItems');
+
+        let self = this;
+        let doc = getMongoPool('config').Kakou;
+        doc.find({}, function (err, item) {
+            if(!err){
+                self.items = item;
+
+
+                callback(item);
+            }
+        });
+    }
+}
+
+
+let kkLogic = new KakouLogic();
+
 module.exports = function (router) {
 
     // PaaS -> 创建分析结果
@@ -97,7 +165,7 @@ module.exports = function (router) {
         }
 
         async.parallel(asyncfn,
-            (err, items)=>{
+            async (err, items)=>{
                 if(err){
                     res.send(500, err);
                 }else{
@@ -108,7 +176,10 @@ module.exports = function (router) {
                     }
                     for(let i in results){
                         let item = JSON.parse(JSON.stringify( results[i]));
-                        item["address"] = "三峒大路石岗村";
+
+                        // async call
+                        let kakou = await kkLogic.getKakou(item.kakouid);
+                        item["address"] =  kakou.address;
                         temps.push(item);
                     }
                     res.json(200, temps);
