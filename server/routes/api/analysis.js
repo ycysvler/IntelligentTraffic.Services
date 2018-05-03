@@ -71,8 +71,8 @@ module.exports = function (router) {
         item.name = body.name;
         item.kakouid= body.kakouid;
         item.vehiclezone = body.vehiclezone;
-        item.date = body.date;
-
+        // bach mongodb date, ISO
+        item.date = moment( body.date + "Z");
         item.platehasno = body.platehasno;
         item.platecolor = body.platecolor;
         item.platenumber = body.platenumber;
@@ -133,9 +133,10 @@ module.exports = function (router) {
 
         console.log('/analysis/search/1 > datas', datas);
 
+
+
         let param = {
             kakouid:{$in:req.body.kakouid},
-            platenumber:req.body.platenumber,
             vehiclebrand:req.body.vehiclebrand,
             vehiclemodel:req.body.vehiclemodel,
             vehicleyear:req.body.vehicleyear,
@@ -151,6 +152,16 @@ module.exports = function (router) {
                 delete param[name];
             }
         }
+
+        // for platenumber [?] [*] search
+        if(req.body.platenumber){
+            let RegExp = eval("/" + req.body.platenumber.replace("?",".").replace("*",".*") + "/");
+            param.platenumber=RegExp;
+        }
+
+        param.$and =[{date:{$gte:new moment(req.body.begin + "Z")}},{date:{$lte:new moment(req.body.end + "Z")}}];
+
+        console.log('param', param);
 
 
         let asyncfn = [];
