@@ -11,67 +11,46 @@ let mongoose = require('mongoose');
 
 let getMongoPool = require('../../mongo/pool');
 
-
-
-
 class KakouLogic{
     constructor(x, y) {
-        this.items = [];
-    }
-
-    async asyncGetKaKou(kakouid){
-        const result =  await this.getKakou(kakouid);
-
-        console.log("result", result);
-
-        return result;
+        this.items = new Map();
     }
 
     getKakou(kakouid){
         let self = this;
 
-        return new Promise((resolve, reject)=>{
-            let result = self.getKakouById(kakouid);
+        return new Promise(async (resolve, reject)=>{
+            let result =  self.items.get(kakouid);
 
             if(result)
                 resolve(result);
             else{
-                self.initItems((items)=>{
+                await self.initItems();
 
-                    result = self.getKakouById(kakouid);
-                    resolve(result);
-                })
+                result = self.items.get(kakouid);
+                resolve(result);
             }
         });
     }
 
-    getKakouById(kakouid){
-        let result = null;
 
-        for(var i in this.items){
-
-            let kakou = this.items[i];
-
-            if(kakou.kakouid === kakouid)
-                result = kakou;
-        }
-
-
-        return result;
-    }
-
-    initItems(callback){
+    initItems(){
         console.log('initItems');
-
         let self = this;
         let doc = getMongoPool('config').Kakou;
-        doc.find({}, function (err, item) {
-            if(!err){
-                self.items = item;
 
+        return new Promise((resolve, reject)=>{
+            doc.find({}, function (err, item) {
+                if(!err){
+                    item.forEach((value, key)=>{
+                        self.items.set(value.kakouid, value);
+                    });
 
-                callback(item);
-            }
+                    resolve(self.items );
+                }else{
+                    reject(err);
+                }
+            });
         });
     }
 }
@@ -128,7 +107,24 @@ module.exports = function (router) {
 
     // 按车型搜索：品牌、型号、年款、车牌、时间、卡口ID
     router.post('/analysis/search/1', (req, res, next) => {
-        let datas = ['20180501'];
+
+        let datas = [];
+
+        if(!req.body.begin || !req.body.end){
+            res.json(403, 'Required parameter missing! [begin, end]');
+            return;
+        }
+
+        let begin =  new moment(req.body.begin);
+        let end =  new moment(req.body.end);
+
+        // begin to end
+        while(begin <= end){
+            datas.push(begin.format('YYYYMMDD'));
+            begin = begin.add(1,'days');
+        }
+
+        console.log('/analysis/search/1 > datas', datas);
 
         let param = {
             kakouid:{$in:req.body.kakouid},

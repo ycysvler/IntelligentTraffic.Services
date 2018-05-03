@@ -6,6 +6,7 @@ let moment = require('moment');
 let uuid = require('uuid');
 var path = require('path');
 let fs = require('fs');
+let gm = require('gm').subClass({imageMagick:true});
 
 let getMongoPool = require('../../mongo/pool');
 
