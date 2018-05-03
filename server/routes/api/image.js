@@ -102,6 +102,54 @@ module.exports = function (router) {
         });
     });
 
+    // PaaS -> 查询 -> 图片数据
+    router.get('/images/rect/:date/:name', (req, res, next) => {
+        // connect 使用 appid 换算出 entid
+        let date = req.params.date;
+        let name = req.params.name;
+        let ImageSource = getMongoPool(date).ImageSource;
+
+        ImageSource.findOne({name: name}, 'source', function (err, item) {
+            if (err) {
+                res.send(err);
+            } else {
+                gm(item.source)
+                    .stroke("black", 3)
+                    .fill('transparent')
+                    .drawRectangle(req.query.x0, req.query.y0, req.query.x1, req.query.y1)
+                    .toBuffer('JPEG', (err,buffer)=>{
+                        if(err)
+                            console.log('err', err);
+
+                        res.send(buffer);
+                    })
+            }
+        });
+    });
+
+    // PaaS -> 查询 -> 图片数据
+    router.get('/images/crop/:date/:name', (req, res, next) => {
+        // connect 使用 appid 换算出 entid
+        let date = req.params.date;
+        let name = req.params.name;
+        let ImageSource = getMongoPool(date).ImageSource;
+
+        ImageSource.findOne({name: name}, 'source', function (err, item) {
+            if (err) {
+                res.send(err);
+            } else {
+                gm(item.source)
+                    .crop(req.query.width, req.query.height, req.query.x, req.query.y)
+                    .toBuffer('JPEG', (err,buffer)=>{
+                        if(err)
+                            console.log('err', err);
+
+                        res.send(buffer);
+                    })
+            }
+        });
+    });
+
 
     // 淘汰接口
     router.put('/images/:name/extend', (req, res, next) => {

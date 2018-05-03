@@ -71,6 +71,7 @@ module.exports = function (router) {
         item.name = body.name;
         item.kakouid= body.kakouid;
         item.vehiclezone = body.vehiclezone;
+        item.date = body.date;
 
         item.platehasno = body.platehasno;
         item.platecolor = body.platecolor;
@@ -118,6 +119,12 @@ module.exports = function (router) {
         let begin =  new moment(req.body.begin);
         let end =  new moment(req.body.end);
 
+        let pageSize = 8;
+        let current = 1;
+
+        pageSize = req.body.pagesize ? req.body.pagesize * 1 : pageSize;
+        current = req.body.current ? req.body.current * 1 : current;
+
         // begin to end
         while(begin <= end){
             datas.push(begin.format('YYYYMMDD'));
@@ -160,6 +167,7 @@ module.exports = function (router) {
             asyncfn.push(fn);
         }
 
+
         async.parallel(asyncfn,
             async (err, items)=>{
                 if(err){
@@ -178,7 +186,12 @@ module.exports = function (router) {
                         item["address"] =  kakou.address;
                         temps.push(item);
                     }
-                    res.json(200, temps);
+
+                    let total = temps.length;
+
+                    let result = {total:total, current:current, data:temps.slice((current-1)*pageSize, current * pageSize)};
+
+                    res.json(200, result);
                 }
             });
     });
