@@ -55,13 +55,12 @@ class KakouLogic{
     }
 }
 
-
 let kkLogic = new KakouLogic();
 
 module.exports = function (router) {
 
     // PaaS -> 创建分析结果
-    router.post('/analysis/:date', (req, res, next) => {
+    router.post('/analysis/info/:date', (req, res, next) => {
         let date = req.params.date;
         let body = req.body;
         let Analysis = getMongoPool(date).Analysis;
@@ -206,4 +205,61 @@ module.exports = function (router) {
                 }
             });
     });
+
+    // PaaS -> 图像上传
+    router.post('/analysis/images', (req, res, next) => {
+
+        let ImageSource = getMongoPool('19491001').ImageSource;
+        var form = new multiparty.Form({uploadDir: './public/upload/'});
+
+        form.parse(req, function (err, fields, files) {
+
+            var resolvepath;
+            var originalFilename;
+            for (var name in files) {
+                let item = files[name][0];
+                resolvepath = path.resolve(item.path);
+                originalFilename = item.originalFilename;
+            }
+
+            if(JSON.stringify(files) == "{}"){
+                res.send(403,'Required parameter missing! [image files]');
+                return;
+            }
+
+            let file = path.resolve(resolvepath);
+            fs.readFile(file, function (err, chunk) {
+                if (err)
+                    return console.error(err);
+
+                let item = new ImageSource();
+                item.createtime = moment();
+                item.snaptime = moment();
+
+                let extname = path.extname(originalFilename);
+                item.name = uuid.v1() + extname;
+
+                item.source = chunk;
+                // 如果有类型和扩展信息，那就加上吧
+                item.state = 0; //新图像
+                item.kakouid="0";
+
+                console.log('item', item);
+
+                item.save(function (err, item) {
+                    fs.unlink(file, () => {
+                    });
+
+                    if (err) {
+                        res.send(500, err.errmsg);
+                    }
+                    else {
+                        res.send(200, item._id);
+                    }
+                });
+            });
+
+        });
+    });
+
 }
