@@ -207,7 +207,7 @@ module.exports = function (router) {
     });
 
     // PaaS -> 图像上传
-    router.post('/analysis/images', (req, res, next) => {
+    router.post('/analysis/search/images', (req, res, next) => {
 
         let ImageSource = getMongoPool('19491001').ImageSource;
         var form = new multiparty.Form({uploadDir: './public/upload/'});

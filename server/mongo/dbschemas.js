@@ -31,10 +31,10 @@ module.exports = class Schemas{
             kakouid:{type: String, index: true},                            //  卡口ID
             vehiclezone:Object,                                             //  车辆检测 > 本信息在原图对应的区域
 
-            platehasno:{type: Number,index: true},                          //  车牌识别 > 车牌有无
+            platehasno:{type: Number,index: true},                          //  车牌识别 > 车牌有无（0：无，1：有）
             platecolor:{type: String,index: true},                          //  车牌识别 > 车牌颜色
             platenumber:String,                                             //  车牌识别 > 车牌号码
-            platetype:String,                                               //  车牌识别 > 合拍类型（保留字段）
+            platetype:String,                                               //  车牌识别 > 车牌类型（保留字段）
 
             vehiclebrand:String,                                            //  车型识别 > 品牌
             vehiclemodel:String,                                            //  车型识别 > 型号
