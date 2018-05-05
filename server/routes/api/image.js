@@ -107,7 +107,32 @@ module.exports = function (router) {
         // connect 使用 appid 换算出 entid
         let date = req.params.date;
         let name = req.params.name;
+
+        if(!req.query.width){
+            res.json(403, 'Required parameter missing! [width]');
+            return;
+        }
+        if(!req.query.height){
+            res.json(403, 'Required parameter missing! [height]');
+            return;
+        }
+        if(!req.query.x){
+            res.json(403, 'Required parameter missing! [x]');
+            return;
+        }
+        if(!req.query.y){
+            res.json(403, 'Required parameter missing! [y]');
+            return;
+        }
+
         let ImageSource = getMongoPool(date).ImageSource;
+
+        let x0 = parseInt(req.query.x);
+        let y0 = parseInt(req.query.y);
+        let x1 = x0 + parseInt(req.query.width);
+        let y1 = y0 + parseInt(req.query.height);
+
+        console.log('x y ', x0, y0, x1, y1);
 
         ImageSource.findOne({name: name}, 'source', function (err, item) {
             if (err) {
@@ -116,7 +141,7 @@ module.exports = function (router) {
                 gm(item.source)
                     .stroke("black", 3)
                     .fill('transparent')
-                    .drawRectangle(req.query.x0, req.query.y0, req.query.x1, req.query.y1)
+                    .drawRectangle(x0, y0, x1, y1)
                     .toBuffer('JPEG', (err,buffer)=>{
                         if(err)
                             console.log('err', err);
@@ -132,6 +157,24 @@ module.exports = function (router) {
         // connect 使用 appid 换算出 entid
         let date = req.params.date;
         let name = req.params.name;
+
+        if(!req.query.width){
+            res.json(403, 'Required parameter missing! [width]');
+            return;
+        }
+        if(!req.query.height){
+            res.json(403, 'Required parameter missing! [height]');
+            return;
+        }
+        if(!req.query.x){
+            res.json(403, 'Required parameter missing! [x]');
+            return;
+        }
+        if(!req.query.y){
+            res.json(403, 'Required parameter missing! [y]');
+            return;
+        }
+
         let ImageSource = getMongoPool(date).ImageSource;
 
         ImageSource.findOne({name: name}, 'source', function (err, item) {
