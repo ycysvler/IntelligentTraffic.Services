@@ -255,8 +255,7 @@ module.exports = function (router) {
                 console.log('item', item);
 
                 item.save(function (err, item) {
-                    fs.unlink(file, () => {
-                    });
+
 
                     if (err) {
                         res.send(500, err.errmsg);
@@ -271,6 +270,7 @@ module.exports = function (router) {
                                 console.log('err',err);
                             }else{
                                 console.log(body);
+                                fs.unlink(file, () => {});
                                 res.json(200, JSON.parse(body));
                             }
 
