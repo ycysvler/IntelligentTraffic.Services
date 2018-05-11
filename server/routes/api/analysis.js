@@ -252,7 +252,6 @@ module.exports = function (router) {
                 item.state = 0; //新图像
                 item.kakouid="0";
 
-
                 console.log('item', item);
 
                 item.save(function (err, item) {
