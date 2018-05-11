@@ -208,8 +208,9 @@ module.exports = function (router) {
 
     // PaaS -> 图像上传
     router.post('/analysis/search/images', (req, res, next) => {
+        let date = '19491001';
 
-        let ImageSource = getMongoPool('19491001').ImageSource;
+        let ImageSource = getMongoPool(date).ImageSource;
         var form = new multiparty.Form({uploadDir: './public/upload/'});
 
         form.parse(req, function (err, fields, files) {
@@ -254,7 +255,13 @@ module.exports = function (router) {
                         res.send(500, err.errmsg);
                     }
                     else {
-                        res.send(200, item._id);
+                        //bbe459f0-503a-11e8-8f30-d5e4febeea38.jpg
+
+                        let Analysis = getMongoPool(date).Analysis;
+
+                        Analysis.find({name: 'bbe459f0-503a-11e8-8f30-d5e4febeea38.jpg'}, 'name date vehicletype vehiclecolor vehiclemaker vehicleyear vehiclemodel vehiclebrand platetype platenumber platecolor vehiclezone',function (err, items) {
+                            res.json(200, items);
+                        });
                     }
                 });
             });
