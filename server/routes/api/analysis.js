@@ -8,6 +8,8 @@ let path = require('path');
 let async = require('async');
 let fs = require('fs');
 let mongoose = require('mongoose');
+const request = require('request');
+const config_calculator = require('../../config/calculator');
 
 let getMongoPool = require('../../mongo/pool');
 
@@ -222,11 +224,16 @@ module.exports = function (router) {
                 resolvepath = path.resolve(item.path);
                 originalFilename = item.originalFilename;
             }
+            //console.log('files', files);
+            //console.log('err', err);
+            //console.log('fields', fields);
 
             if(JSON.stringify(files) == "{}"){
                 res.send(403,'Required parameter missing! [image files]');
                 return;
             }
+
+            console.log('analysis upload path > ', resolvepath);
 
             let file = path.resolve(resolvepath);
             fs.readFile(file, function (err, chunk) {
@@ -256,12 +263,23 @@ module.exports = function (router) {
                     }
                     else {
                         //bbe459f0-503a-11e8-8f30-d5e4febeea38.jpg
+                        let url = config_calculator.url + '/test' + "?image=" + resolvepath;
+                        //let url = config_calculator.url + '/test' + "?image=/home/zhq/project/testPic/5008-0103-20170501182354812B.jpg";
 
-                        let Analysis = getMongoPool(date).Analysis;
+                        request({url:url,gzip:true}, (err, res1, body)=>{
+                            if(err){
+                                console.log('err',err);
+                            }else{
+                                console.log(body);
+                                res.json(200, JSON.parse(body));
+                            }
 
-                        Analysis.find({name: 'bbe459f0-503a-11e8-8f30-d5e4febeea38.jpg'}, 'name date vehicletype vehiclecolor vehiclemaker vehicleyear vehiclemodel vehiclebrand platetype platenumber platecolor vehiclezone',function (err, items) {
-                            res.json(200, items);
                         });
+                        //let Analysis = getMongoPool(date).Analysis;
+
+                        //Analysis.find({name: 'bbe459f0-503a-11e8-8f30-d5e4febeea38.jpg'}, 'name date vehicletype vehiclecolor vehiclemaker vehicleyear vehiclemodel vehiclebrand platetype platenumber platecolor vehiclezone',function (err, items) {
+                        //    res.json(200, items);
+                        //});
                     }
                 });
             });
