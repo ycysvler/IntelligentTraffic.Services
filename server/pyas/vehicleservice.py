@@ -32,11 +32,13 @@ def caculator():
     image =urllib.unquote(request.args.get("image"))
 
     item = mongodb.db(date).imagesource.find_one({'name': image})
-    print item
+    file = open('temp/' + item.name, 'wb')
+    file.write(item['source'])
+    file.close()
 
     #r = t2(image)
     #print r
-    return Response(json.dumps(item, cls=ComplexEncoder),mimetype='application/json')
+    return Response(json.dumps(item.name, cls=ComplexEncoder),mimetype='application/json')
 #    return str(r)
 
 if __name__ == '__main__':
