@@ -6,13 +6,14 @@ import time
 import json
 import numpy
 import urllib
+import mongodb
 sys.path.append("./dll")
 
 from IVehicleCalculator import vehicleMaster
 from flask import Flask,request ,Response
 
 
-modelDir = r'/home/zhq/install_lib/vehicleDll/models'
+#modelDir = r'/home/zhq/install_lib/vehicleDll/models'
 #master = vehicleMaster(modelDir,0,True,True,True)
 
 # 用于json 序列化中处理numpy.float32类型
@@ -29,11 +30,13 @@ app = Flask(__name__)
 def caculator():
     date = urllib.unquote(request.args.get("date"))
     image =urllib.unquote(request.args.get("image"))
-    print date
-    print image
+
+    item = mongodb.db(date).imagesource.find_one({'name': image})
+    print item
+
     #r = t2(image)
     #print r
-    return Response(json.dumps({'image':image,'date':date}, cls=ComplexEncoder),mimetype='application/json')
+    return Response(json.dumps(item, cls=ComplexEncoder),mimetype='application/json')
 #    return str(r)
 
 if __name__ == '__main__':
