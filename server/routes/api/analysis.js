@@ -210,13 +210,12 @@ module.exports = function (router) {
 
     // PaaS -> 图像上传
     router.post('/analysis/search/images', (req, res, next) => {
-        let date = '19491001';
+        let date = '19491001';  // 写死的查询用日期
 
         let ImageSource = getMongoPool(date).ImageSource;
         var form = new multiparty.Form({uploadDir: './public/upload/'});
 
         form.parse(req, function (err, fields, files) {
-
             var resolvepath;
             var originalFilename;
             for (var name in files) {
@@ -224,67 +223,48 @@ module.exports = function (router) {
                 resolvepath = path.resolve(item.path);
                 originalFilename = item.originalFilename;
             }
-            //console.log('files', files);
-            //console.log('err', err);
-            //console.log('fields', fields);
 
             if(JSON.stringify(files) == "{}"){
                 res.send(403,'Required parameter missing! [image files]');
                 return;
             }
-
+            // 显示上传图片信息
             console.log('analysis upload path > ', resolvepath);
 
             let file = path.resolve(resolvepath);
             fs.readFile(file, function (err, chunk) {
                 if (err)
                     return console.error(err);
+                let extname = path.extname(originalFilename);
 
                 let item = new ImageSource();
-                item.createtime = moment();
-                item.snaptime = moment();
+                item.createtime = moment();         // 创建时间
+                item.snaptime = moment();           // 拍摄时间
+                item.name = uuid.v1() + extname;    // 图像名称
+                item.source = chunk;                // 图像数据
+                item.state = 0;                     // 新图像
+                item.kakouid="0";                   // 卡口ID
 
-                let extname = path.extname(originalFilename);
-                item.name = uuid.v1() + extname;
-
-                item.source = chunk;
-                // 如果有类型和扩展信息，那就加上吧
-                item.state = 0; //新图像
-                item.kakouid="0";
-
-                console.log('item', item);
-
-                item.save(function (err, item) {
-
-
+                item.save(function (err, data) {
                     if (err) {
                         res.send(500, err.errmsg);
                     }
                     else {
-                        //bbe459f0-503a-11e8-8f30-d5e4febeea38.jpg
-                        let url = config_calculator.url + '/test' + "?image=" + resolvepath;
-                        //let url = config_calculator.url + '/test' + "?image=/home/zhq/project/testPic/5008-0103-20170501182354812B.jpg";
+                        let url = config_calculator.url + '/caculator' + "?date="+date+"&image=" + item.name;
 
-                        request({url:url,gzip:true}, (err, res1, body)=>{
+                        request({url:url}, (err, res1, body)=>{
                             if(err){
                                 console.log('err',err);
+                                res.send(500, err);
                             }else{
                                 console.log(body);
                                 fs.unlink(file, () => {});
                                 res.json(200, JSON.parse(body));
                             }
-
                         });
-                        //let Analysis = getMongoPool(date).Analysis;
-
-                        //Analysis.find({name: 'bbe459f0-503a-11e8-8f30-d5e4febeea38.jpg'}, 'name date vehicletype vehiclecolor vehiclemaker vehicleyear vehiclemodel vehiclebrand platetype platenumber platecolor vehiclezone',function (err, items) {
-                        //    res.json(200, items);
-                        //});
                     }
                 });
             });
-
         });
     });
-
 }
