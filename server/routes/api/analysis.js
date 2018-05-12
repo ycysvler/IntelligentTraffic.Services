@@ -59,6 +59,8 @@ class KakouLogic{
 
 let kkLogic = new KakouLogic();
 
+
+
 module.exports = function (router) {
 
     // PaaS -> 创建分析结果
@@ -237,34 +239,136 @@ module.exports = function (router) {
                     return console.error(err);
                 let extname = path.extname(originalFilename);
 
-                let item = new ImageSource();
-                item.createtime = moment();         // 创建时间
-                item.snaptime = moment();           // 拍摄时间
-                item.name = uuid.v1() + extname;    // 图像名称
-                item.source = chunk;                // 图像数据
-                item.state = 0;                     // 新图像
-                item.kakouid="0";                   // 卡口ID
+                let image = new ImageSource();
+                image.createtime = moment();         // 创建时间
+                image.snaptime = moment();           // 拍摄时间
+                image.name = uuid.v1() + extname;    // 图像名称
+                image.source = chunk;                // 图像数据
+                image.state = 0;                     // 新图像
+                image.kakouid="0";                   // 卡口ID
 
-                item.save(function (err, data) {
+                image.save(function (err, data) {
                     if (err) {
                         res.send(500, err.errmsg);
                     }
                     else {
-                        let url = config_calculator.url + '/caculator' + "?date="+date+"&image=" + item.name;
+                        fs.unlink(file, () => {});  // delete image file
 
-                        request({url:url}, (err, res1, body)=>{
+                        let url = config_calculator.url + '/caculator' + "?date="+date+"&image=" + image.name;
+
+                        request({url:url},async (err, res1, body)=>{
                             if(err){
                                 console.log('err',err);
                                 res.send(500, err);
                             }else{
-                                console.log(body);
-                                fs.unlink(file, () => {});
-                                res.json(200, JSON.parse(body));
+                                let results = JSON.parse(body);
+                                console.log('request caculator > ', results);
+                                // write analysis
+                                let Analysis = getMongoPool(date).Analysis;
+
+                                let hasErr = null;
+
+                                for(i in results){
+                                    let result = results[i];
+
+                                    let item = new Analysis();
+
+                                    adapterAnalysis(item,image.name, image.kakouid, result);
+
+                                    let t = await insertAnalysis(item);
+                                    if(t.code === 500){
+                                        hasErr = t;
+                                    }
+                                }
+
+                                if(hasErr){
+                                    res.send(500, hasErr.body);
+                                }else{
+                                    Analysis.find({'name':image.name},(err,items)=>{
+                                       if(err){
+                                           res.send(500, err);
+                                       }
+                                       else{
+                                           res.json(items);
+                                       }
+                                    });
+                                }
                             }
                         });
                     }
                 });
             });
+        });
+    });
+}
+
+const adapterAnalysis = (item,name, kakouid, vehicle)=>{
+    item.name = name;
+    item.kakouid= kakouid;
+    item.vehiclezone = {
+        "x":vehicle['vehicleZone'][0],
+        "y":vehicle['vehicleZone'][1],
+        "width":vehicle['vehicleZone'][2]-vehicle['vehicleZone'][0],
+        "height":vehicle['vehicleZone'][3]-vehicle['vehicleZone'][1]};
+    // bach mongodb date, ISO
+    item.date = moment( '1949-10-01 00:00:00' + "Z");
+    item.platehasno = 0;
+    item.platecolor = '';
+    item.platenumber = '';
+    item.platetype = '';
+
+    let vehicleTypes = vehicle['vehicleType']['category'].split('_');
+
+    item.vehiclebrand = vehicleTypes[1];
+    item.vehiclemodel = vehicleTypes[3];
+    item.vehicleyear = vehicleTypes[4];
+    item.vehiclemaker = vehicleTypes[2];
+    item.vehiclecolor = vehicle['vehicleColor']['category'];
+    item.vehiclescore = vehicle['vehicleColor']['score'];
+    item.vehicletype = vehicleTypes[0];
+
+    item.vehicleposture = vehicle["vehiclePosture"]['category'] === "车头"?0:1;
+
+    if(vehicle["vehicleStruct"]){
+        item.withFrontWindowLabelInspection = vehicle["vehicleStruct"]["withFrontWindowLabelInspection"]?1:0;
+        item.withFrontWindowAccessories = vehicle["vehicleStruct"]["withFrontWindowAccessories"]?1:0;
+        item.isTaxi = vehicle["vehicleStruct"]["isTaxi"]?1:0;
+        item.withDriverSafetyBelt = vehicle["vehicleStruct"]["withDriverSafetyBelt"]?1:0;
+        item.withSideSafetyBelt = vehicle["vehicleStruct"]["withSideSafetyBelt"]?1:0;
+        item.withCellPhone = vehicle["vehicleStruct"]["withCellPhone"]?1:0;
+        item.withFrontWindowObjects = vehicle["vehicleStruct"]["withFrontWindowObjects"]?1:0;
+        item.withOtherPeopleOnSideSeat = vehicle["vehicleStruct"]["withOtherPeopleOnSideSeat"]?1:0;
+        item.withSunShieldDown = vehicle["vehicleStruct"]["withSunShieldDown"]?1:0;
+        item.withSkyRoof = vehicle["vehicleStruct"]["withSkyRoof"]?1:0;
+        if(vehicle["vehicleStruct"]["driveSeatZone"]){
+            item.driverSeatZone = {
+                "x":vehicle["vehicleStruct"]["driveSeatZone"][0],
+                "y":vehicle["vehicleStruct"]["driveSeatZone"][1],
+                "width":vehicle["vehicleStruct"]["driveSeatZone"][2] - vehicle["vehicleStruct"]["driveSeatZone"][0],
+                "height":vehicle["vehicleStruct"]["driveSeatZone"][3] - vehicle["vehicleStruct"]["driveSeatZone"][1],
+                "score":vehicle["vehicleStruct"]["driveSeatZone"][4],
+            }
+        }
+        if(vehicle["vehicleStruct"]["skyRoof"]){
+            item.skyRoof = {
+                "x":vehicle["vehicleStruct"]["skyRoof"][0],
+                "y":vehicle["vehicleStruct"]["skyRoof"][1],
+                "width":vehicle["vehicleStruct"]["skyRoof"][2] - vehicle["vehicleStruct"]["skyRoof"][0],
+                "height":vehicle["vehicleStruct"]["skyRoof"][3] - vehicle["vehicleStruct"]["skyRoof"][1],
+                "score":vehicle["vehicleStruct"]["skyRoof"][4],
+            }
+        }
+    }
+
+}
+
+const insertAnalysis = async function(item){
+    return new Promise(function (resolve, reject) {
+        item.save((err, data) =>{
+            if(err)
+                return reject({code:500, body:err});
+            else
+                resolve({code:200,body:data});
         });
     });
 }

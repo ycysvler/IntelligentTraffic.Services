@@ -42,9 +42,12 @@ module.exports = class Schemas{
             vehiclemaker:String,                                            //  车型识别 > 厂家
             vehiclecolor:String,                                            //  车型识别 > 车辆颜色
             vehicletype:String,                                             //  车型识别 > 车辆分类
+            vehiclescore:Number,                                            //  车型识别 > 车型置信度
 
-            driverSideSeatZone:[],                                          //  车辆结构化 > 车窗 > 副驾驶座位区域
-            driverSeatZone:[],                                              //  车辆结构化 > 车窗 > 驾驶员座位区域
+            vehicleposture:Number,                                          //  车型位置 > 0：车头， 1：车尾
+
+            driverSideSeatZone:Object,                                      //  车辆结构化 > 车窗 > 副驾驶座位区域
+            driverSeatZone:Object,                                          //  车辆结构化 > 车窗 > 驾驶员座位区域
             frontWindowLabelInspectionZone:[],                              //  车辆结构化 > 车窗 > 车辆前窗检标签区域
             frontWindowAccessoriesZone:[],                                  //  车辆结构化 > 车窗 > 车辆前窗挂件区域
             frontWindowObjectsZone:[],                                      //  车辆结构化 > 车窗 > 车辆前窗摆件区域
@@ -53,8 +56,9 @@ module.exports = class Schemas{
             TaxiFlag:Object,                                                //  车辆结构化 > 车窗 > 出租车标牌区域
 
             withVehicleSkyRoof:Number,                                      //  车辆结构化 > 检测部分 > 是否有天窗
+            withSkyRoof:Number,                                             //  车辆结构化 > 检测部分 > 是否有车辆前窗天窗区域
             withSunShieldDown:Number,                                       //  车辆结构化 > 检测部分 > 是否遮阳板放下
-            isTaxiVehicle:Number,                                           //  车辆结构化 > 检测部分 > 是否是出租车
+            isTaxi:Number,                                                  //  车辆结构化 > 检测部分 > 是否是出租车
             withOtherPeopleOnSideSeat:Number,                               //  车辆结构化 > 检测部分 > 副驾驶座位是否有人
             withFrontWindowLabelInspection:Number,                          //  车辆结构化 > 检测部分 > 是否有年检标签
             withFrontWindowAccessories:Number,                              //  车辆结构化 > 检测部分 > 是否有挂件
@@ -76,7 +80,7 @@ module.exports = class Schemas{
             createtime:Date,                                                //  创建时间（计算完成车型信息的时间）
             extend:String                                                   //  扩展字段，放个大字符串
         });
-        this.analysisSchema.index({kakouid:1, vehicletype: 1, vehiclebrand:1, vehiclemaker: 1,vehiclemodel:1,vehicleyear:1,vehiclecolor:1,date:1 ,platenumber:1 });
+        this.analysisSchema.index({kakouid:1, vehicletype: 1, vehiclebrand:1, vehiclemaker: 1,vehiclemodel:1,vehicleyear:1,vehiclecolor:1,date:1 ,platenumber:1,vehicleposture:1 });
         this.Analysis = conn.model('Analysis', this.analysisSchema,'analysis');
     }
 }

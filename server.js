@@ -80,7 +80,7 @@ app.get('/*', function (req, res) {
 });
 
 
-var PORT = process.env.PORT || 7100;
+var PORT = process.env.PORT || 7101;
 app.listen(PORT, function() {
     console.log('intelligent traffice services running at localhost:' + PORT);
 });
