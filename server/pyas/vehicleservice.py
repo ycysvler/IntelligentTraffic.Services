@@ -38,8 +38,10 @@ def caculator():
     # 声明特征返回值
     result = None
     try:
+        time_start = time.time()
         # 数据库查找图片
         item = mongodb.db(date).imagesource.find_one({'name': image})
+        time_db_find = time.time()
         if (item is None):
             return Response( image + ' is missing', status=404)
         # 写临时u图片到磁盘
@@ -47,9 +49,12 @@ def caculator():
         file = open(imagepath, 'wb')
         file.write(item['source'])
         file.close()
+        time_file_write = time.time()
         # 计算特征值
         im = cv2.imread(imagepath)
         result = master.detect(im)
+        time_vehicle_detect = time.time()
+
         # 删除临时图片
         os.remove(imagepath)
         # 修改图片处理状态
@@ -57,6 +62,9 @@ def caculator():
     except(ex1):
         return Response(str(ex1), status=500)
     else:
+        print "db_find: ", (time_db_find - time_start) * 1000, "ms", "*********"
+        print "file_write: ", (time_file_write - time_start) * 1000, "ms", "*********",(time_file_write - time_db_find) * 1000
+        print "vehicle_detect: ", (time_vehicle_detect - time_start) * 1000, "ms", "*********",(time_vehicle_detect - time_file_write) * 1000
         print result
         return Response(json.dumps(result, cls=ComplexEncoder),mimetype='application/json')
 
