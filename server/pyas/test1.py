@@ -26,7 +26,7 @@ def run():
         os.remove(imagepath)
         end = time.time()
 
-        print "cost time: ", (end - start) * 1000, "ms", "*********", item['name'],result
+        print "cost time: ", (end - start) * 1000, "ms", "*********", item['name']
 
 if __name__ == '__main__':
     run()

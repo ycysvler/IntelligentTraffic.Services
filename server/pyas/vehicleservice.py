@@ -14,7 +14,7 @@ from flask import Flask,request ,Response
 
 
 modelDir = r'/home/zhq/install_lib/vehicleDll/models'
-master = vehicleMaster(modelDir,0,True,True,True)
+master = vehicleMaster(modelDir,0,True,True,False)
 
 # 用于json 序列化中处理numpy.float32类型
 class ComplexEncoder(json.JSONEncoder):
