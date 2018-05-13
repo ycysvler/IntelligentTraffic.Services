@@ -68,6 +68,5 @@ def caculator():
         print result
         return Response(json.dumps(result, cls=ComplexEncoder),mimetype='application/json')
 
-
 if __name__ == '__main__':
     app.run(debug=False,host='0.0.0.0', port=7777)
