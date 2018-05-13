@@ -9,7 +9,7 @@ sys.path.append("./dll")
 
 from IVehicleCalculator import vehicleMaster
 modelDir = r'/home/zhq/install_lib/vehicleDll/models'
-master = vehicleMaster(modelDir,0,True,True,True)
+master = vehicleMaster(modelDir,0,True,True,False)
 
 def run():
     date = '20170427'
