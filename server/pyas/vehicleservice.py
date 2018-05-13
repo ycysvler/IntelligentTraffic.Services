@@ -53,7 +53,7 @@ def caculator():
         # 删除临时图片
         os.remove(imagepath)
         # 修改图片处理状态
-        mongodb.db(date).imagesource.update({'name': image},{'$set':{'state':1}})
+        mongodb.db(date).imagesource.update({'name': image},{'$set':{'state':2}})
     except(ex1):
         return Response(str(ex1), status=500)
     else:
