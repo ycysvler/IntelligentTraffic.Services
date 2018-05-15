@@ -13,20 +13,19 @@ const config_calculator = require('../../config/calculator');
 
 let getMongoPool = require('../../mongo/pool');
 
-class KakouLogic{
+class KakouLogic {
     constructor(x, y) {
         this.items = new Map();
     }
-
-    getKakou(kakouid){
+    getKakou(kakouid) {
         let self = this;
 
-        return new Promise(async (resolve, reject)=>{
-            let result =  self.items.get(kakouid);
+        return new Promise(async(resolve, reject) => {
+            let result = self.items.get(kakouid);
 
-            if(result)
+            if (result)
                 resolve(result);
-            else{
+            else {
                 await self.initItems();
 
                 result = self.items.get(kakouid);
@@ -35,21 +34,20 @@ class KakouLogic{
         });
     }
 
-
-    initItems(){
+    initItems() {
         console.log('initItems');
         let self = this;
         let doc = getMongoPool('config').Kakou;
 
-        return new Promise((resolve, reject)=>{
+        return new Promise((resolve, reject) => {
             doc.find({}, function (err, item) {
-                if(!err){
-                    item.forEach((value, key)=>{
+                if (!err) {
+                    item.forEach((value, key) => {
                         self.items.set(value.kakouid, value);
                     });
 
-                    resolve(self.items );
-                }else{
+                    resolve(self.items);
+                } else {
                     reject(err);
                 }
             });
@@ -58,8 +56,6 @@ class KakouLogic{
 }
 
 let kkLogic = new KakouLogic();
-
-
 
 module.exports = function (router) {
 
@@ -72,10 +68,10 @@ module.exports = function (router) {
 
         item.imageid = new mongoose.Types.ObjectId(body.imageid);
         item.name = body.name;
-        item.kakouid= body.kakouid;
+        item.kakouid = body.kakouid;
         item.vehiclezone = body.vehiclezone;
         // bach mongodb date, ISO
-        item.date = moment( body.date + "Z");
+        item.date = moment(body.date + "Z");
         item.platehasno = body.platehasno;
         item.platecolor = body.platecolor;
         item.platenumber = body.platenumber;
@@ -90,9 +86,9 @@ module.exports = function (router) {
 
 
         item.save(function (err, data) {
-            if(err){
+            if (err) {
                 res.json(500, err);
-            }else{
+            } else {
                 res.json(200, data);
             }
         });
@@ -114,13 +110,13 @@ module.exports = function (router) {
 
         let datas = [];
 
-        if(!req.body.begin || !req.body.end){
+        if (!req.body.begin || !req.body.end) {
             res.json(403, 'Required parameter missing! [begin, end]');
             return;
         }
 
-        let begin =  new moment(req.body.begin);
-        let end =  new moment(req.body.end);
+        let begin = new moment(req.body.begin);
+        let end = new moment(req.body.end);
 
         let pageSize = 8;
         let current = 1;
@@ -129,49 +125,48 @@ module.exports = function (router) {
         current = req.body.current ? req.body.current * 1 : current;
 
         // begin to end
-        while(begin <= end){
+        while (begin <= end) {
             datas.push(begin.format('YYYYMMDD'));
-            begin = begin.add(1,'days');
+            begin = begin.add(1, 'days');
         }
 
         console.log('/analysis/search/1 > datas', datas);
 
 
-
         let param = {
-            kakouid:{$in:req.body.kakouid},
-            vehiclebrand:req.body.vehiclebrand,
-            vehiclemodel:req.body.vehiclemodel,
-            vehicleyear:req.body.vehicleyear,
-            vehiclemaker:req.body.vehiclemaker,
-            vehicletype:req.body.vehicletype
+            kakouid: {$in: req.body.kakouid},
+            vehiclebrand: req.body.vehiclebrand,
+            vehiclemodel: req.body.vehiclemodel,
+            vehicleyear: req.body.vehicleyear,
+            vehiclemaker: req.body.vehiclemaker,
+            vehicletype: req.body.vehicletype
         };
 
         // 去掉无效查询条件
-        for(let name in param){
+        for (let name in param) {
 
-            if(!req.body.hasOwnProperty(name) || req.body[name].length == 0){
+            if (!req.body.hasOwnProperty(name) || req.body[name].length == 0) {
 
                 delete param[name];
             }
         }
 
         // for platenumber [?] [*] search
-        if(req.body.platenumber){
-            let RegExp = eval("/" + req.body.platenumber.replace("?",".").replace("*",".*") + "/");
-            param.platenumber=RegExp;
+        if (req.body.platenumber) {
+            let RegExp = eval("/" + req.body.platenumber.replace("?", ".").replace("*", ".*") + "/");
+            param.platenumber = RegExp;
         }
 
-        param.$and =[{date:{$gte:new moment(req.body.begin + "Z")}},{date:{$lte:new moment(req.body.end + "Z")}}];
+        param.$and = [{date: {$gte: new moment(req.body.begin + "Z")}}, {date: {$lte: new moment(req.body.end + "Z")}}];
 
         console.log('param', param);
 
 
         let asyncfn = [];
 
-        for(let i in datas){
+        for (let i in datas) {
             let d = datas[i];
-            let fn = (callback)=>{
+            let fn = (callback) => {
                 console.log('find in ', d);
                 let Analysis = getMongoPool(d).Analysis;
                 Analysis.find(param, function (err, item) {
@@ -181,29 +176,32 @@ module.exports = function (router) {
             asyncfn.push(fn);
         }
 
-
         async.parallel(asyncfn,
-            async (err, items)=>{
-                if(err){
+            async(err, items) => {
+                if (err) {
                     res.send(500, err);
-                }else{
+                } else {
                     let results = [];
                     let temps = [];
-                    for(let i in items){
+                    for (let i in items) {
                         results = results.concat(items[i]);
                     }
-                    for(let i in results){
-                        let item = JSON.parse(JSON.stringify( results[i]));
+                    for (let i in results) {
+                        let item = JSON.parse(JSON.stringify(results[i]));
 
                         // async call
                         let kakou = await kkLogic.getKakou(item.kakouid);
-                        item["address"] =  kakou.address;
+                        item["address"] = kakou.address;
                         temps.push(item);
                     }
 
                     let total = temps.length;
 
-                    let result = {total:total, current:current, data:temps.slice((current-1)*pageSize, current * pageSize)};
+                    let result = {
+                        total: total,
+                        current: current,
+                        data: temps.slice((current - 1) * pageSize, current * pageSize)
+                    };
 
                     res.json(200, result);
                 }
@@ -226,8 +224,8 @@ module.exports = function (router) {
                 originalFilename = item.originalFilename;
             }
 
-            if(JSON.stringify(files) == "{}"){
-                res.send(403,'Required parameter missing! [image files]');
+            if (JSON.stringify(files) == "{}") {
+                res.send(403, 'Required parameter missing! [image files]');
                 return;
             }
             // 显示上传图片信息
@@ -245,22 +243,23 @@ module.exports = function (router) {
                 image.name = uuid.v1() + extname;    // 图像名称
                 image.source = chunk;                // 图像数据
                 image.state = 0;                     // 新图像
-                image.kakouid="0";                   // 卡口ID
+                image.kakouid = "0";                   // 卡口ID
 
                 image.save(function (err, data) {
                     if (err) {
                         res.send(500, err.errmsg);
                     }
                     else {
-                        fs.unlink(file, () => {});  // delete image file
+                        fs.unlink(file, () => {
+                        });  // delete image file
 
-                        let url = config_calculator.url + '/caculator' + "?date="+date+"&image=" + image.name;
+                        let url = config_calculator.url + '/caculator' + "?date=" + date + "&image=" + image.name;
 
-                        request({url:url},async (err, res1, body)=>{
-                            if(err){
-                                console.log('err',err);
+                        request({url: url}, async(err, res1, body) => {
+                            if (err) {
+                                console.log('err', err);
                                 res.send(500, err);
-                            }else{
+                            } else {
                                 let results = JSON.parse(body);
                                 console.log('request caculator > ', results);
                                 // write analysis
@@ -268,29 +267,29 @@ module.exports = function (router) {
 
                                 let hasErr = null;
 
-                                for(i in results){
+                                for (i in results) {
                                     let result = results[i];
 
                                     let item = new Analysis();
 
-                                    adapterAnalysis(item,image.name, image.kakouid, result);
+                                    adapterAnalysis(item, image.name, image.kakouid, result);
 
                                     let t = await insertAnalysis(item);
-                                    if(t.code === 500){
+                                    if (t.code === 500) {
                                         hasErr = t;
                                     }
                                 }
 
-                                if(hasErr){
+                                if (hasErr) {
                                     res.send(500, hasErr.body);
-                                }else{
-                                    Analysis.find({'name':image.name},(err,items)=>{
-                                       if(err){
-                                           res.send(500, err);
-                                       }
-                                       else{
-                                           res.json(items);
-                                       }
+                                } else {
+                                    Analysis.find({'name': image.name}, (err, items) => {
+                                        if (err) {
+                                            res.send(500, err);
+                                        }
+                                        else {
+                                            res.json(items);
+                                        }
                                     });
                                 }
                             }
@@ -302,16 +301,17 @@ module.exports = function (router) {
     });
 }
 
-const adapterAnalysis = (item,name, kakouid, vehicle)=>{
+const adapterAnalysis = (item, name, kakouid, vehicle) => {
     item.name = name;
-    item.kakouid= kakouid;
+    item.kakouid = kakouid;
     item.vehiclezone = {
-        "x":vehicle['vehicleZone'][0],
-        "y":vehicle['vehicleZone'][1],
-        "width":vehicle['vehicleZone'][2]-vehicle['vehicleZone'][0],
-        "height":vehicle['vehicleZone'][3]-vehicle['vehicleZone'][1]};
+        "x": vehicle['vehicleZone'][0],
+        "y": vehicle['vehicleZone'][1],
+        "width": vehicle['vehicleZone'][2] - vehicle['vehicleZone'][0],
+        "height": vehicle['vehicleZone'][3] - vehicle['vehicleZone'][1]
+    };
     // bach mongodb date, ISO
-    item.date = moment( '1949-10-01 00:00:00' + "Z");
+    item.date = moment('1949-10-01 12:00:00' + "Z");
     item.platehasno = 0;
     item.platecolor = '';
     item.platenumber = '';
@@ -327,48 +327,49 @@ const adapterAnalysis = (item,name, kakouid, vehicle)=>{
     item.vehiclescore = vehicle['vehicleColor']['score'];
     item.vehicletype = vehicleTypes[0];
 
-    item.vehicleposture = vehicle["vehiclePosture"]['category'] === "车头"?0:1;
+    item.vehicleposture = vehicle["vehiclePosture"]['category'] === "车头" ? 0 : 1;
 
-    if(vehicle["vehicleStruct"]){
-        item.withFrontWindowLabelInspection = vehicle["vehicleStruct"]["withFrontWindowLabelInspection"]?1:0;
-        item.withFrontWindowAccessories = vehicle["vehicleStruct"]["withFrontWindowAccessories"]?1:0;
-        item.isTaxi = vehicle["vehicleStruct"]["isTaxi"]?1:0;
-        item.withDriverSafetyBelt = vehicle["vehicleStruct"]["withDriverSafetyBelt"]?1:0;
-        item.withSideSafetyBelt = vehicle["vehicleStruct"]["withSideSafetyBelt"]?1:0;
-        item.withCellPhone = vehicle["vehicleStruct"]["withCellPhone"]?1:0;
-        item.withFrontWindowObjects = vehicle["vehicleStruct"]["withFrontWindowObjects"]?1:0;
-        item.withOtherPeopleOnSideSeat = vehicle["vehicleStruct"]["withOtherPeopleOnSideSeat"]?1:0;
-        item.withSunShieldDown = vehicle["vehicleStruct"]["withSunShieldDown"]?1:0;
-        item.withSkyRoof = vehicle["vehicleStruct"]["withSkyRoof"]?1:0;
-        if(vehicle["vehicleStruct"]["driveSeatZone"]){
+    if (vehicle["vehicleStruct"]) {
+        item.withFrontWindowLabelInspection = vehicle["vehicleStruct"]["withFrontWindowLabelInspection"] ? 1 : 0;
+        item.withFrontWindowAccessories = vehicle["vehicleStruct"]["withFrontWindowAccessories"] ? 1 : 0;
+        item.isTaxi = vehicle["vehicleStruct"]["isTaxi"] ? 1 : 0;
+        item.withDriverSafetyBelt = vehicle["vehicleStruct"]["withDriverSafetyBelt"] ? 1 : 0;
+        item.withSideSafetyBelt = vehicle["vehicleStruct"]["withSideSafetyBelt"] ? 1 : 0;
+        item.withCellPhone = vehicle["vehicleStruct"]["withCellPhone"] ? 1 : 0;
+        item.withFrontWindowObjects = vehicle["vehicleStruct"]["withFrontWindowObjects"] ? 1 : 0;
+        item.withOtherPeopleOnSideSeat = vehicle["vehicleStruct"]["withOtherPeopleOnSideSeat"] ? 1 : 0;
+        item.withSunShieldDown = vehicle["vehicleStruct"]["withSunShieldDown"] ? 1 : 0;
+        item.withSkyRoof = vehicle["vehicleStruct"]["withSkyRoof"] ? 1 : 0;
+        if (vehicle["vehicleStruct"]["driveSeatZone"]) {
             item.driverSeatZone = {
-                "x":vehicle["vehicleStruct"]["driveSeatZone"][0],
-                "y":vehicle["vehicleStruct"]["driveSeatZone"][1],
-                "width":vehicle["vehicleStruct"]["driveSeatZone"][2] - vehicle["vehicleStruct"]["driveSeatZone"][0],
-                "height":vehicle["vehicleStruct"]["driveSeatZone"][3] - vehicle["vehicleStruct"]["driveSeatZone"][1],
-                "score":vehicle["vehicleStruct"]["driveSeatZone"][4],
+                "x": vehicle["vehicleStruct"]["driveSeatZone"][0],
+                "y": vehicle["vehicleStruct"]["driveSeatZone"][1],
+                "width": vehicle["vehicleStruct"]["driveSeatZone"][2] - vehicle["vehicleStruct"]["driveSeatZone"][0],
+                "height": vehicle["vehicleStruct"]["driveSeatZone"][3] - vehicle["vehicleStruct"]["driveSeatZone"][1],
+                "score": vehicle["vehicleStruct"]["driveSeatZone"][4],
             }
         }
-        if(vehicle["vehicleStruct"]["skyRoof"]){
+        if (vehicle["vehicleStruct"]["skyRoof"]) {
             item.skyRoof = {
-                "x":vehicle["vehicleStruct"]["skyRoof"][0],
-                "y":vehicle["vehicleStruct"]["skyRoof"][1],
-                "width":vehicle["vehicleStruct"]["skyRoof"][2] - vehicle["vehicleStruct"]["skyRoof"][0],
-                "height":vehicle["vehicleStruct"]["skyRoof"][3] - vehicle["vehicleStruct"]["skyRoof"][1],
-                "score":vehicle["vehicleStruct"]["skyRoof"][4],
+                "x": vehicle["vehicleStruct"]["skyRoof"][0],
+                "y": vehicle["vehicleStruct"]["skyRoof"][1],
+                "width": vehicle["vehicleStruct"]["skyRoof"][2] - vehicle["vehicleStruct"]["skyRoof"][0],
+                "height": vehicle["vehicleStruct"]["skyRoof"][3] - vehicle["vehicleStruct"]["skyRoof"][1],
+                "score": vehicle["vehicleStruct"]["skyRoof"][4],
             }
         }
     }
 
 }
 
-const insertAnalysis = async function(item){
+const insertAnalysis = async function (item) {
     return new Promise(function (resolve, reject) {
-        item.save((err, data) =>{
-            if(err)
-                return reject({code:500, body:err});
-            else
-                resolve({code:200,body:data});
+        item.save((err, data) => {
+            if (err)
+                return reject({code: 500, body: err});
+            else {
+                resolve({code: 200, body: data});
+            }
         });
     });
 }
