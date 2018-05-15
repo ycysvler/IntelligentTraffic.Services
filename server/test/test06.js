@@ -24,6 +24,29 @@ function createIllegally() {
     });
 }
 
+function createVehicle() {
+    let Vehicle = getMongoPool('analysis').Vehicle;
+    let item = new Vehicle();
+    item.platenumber = 'abc';
+    item.platecolor = '';
+    item.platetype = "";
+    item.vehiclebrand = "三轮车";
+    item.vehiclemodel = "车型3";
+    item.vehicleyear = "A款";
+    item.vehiclemaker = "三轮车";
+    item.vehiclecolor = "black";
+    item.vehicletype = "Car";
+    item.vehiclescore = "0.365";
+    item.createtime = new moment();
+    item.save(function (err, item) {
+        if (err)
+            console.log(err);
+        else
+            console.log(item);
+    });
+}
+
+
 async function test()
 {
     let pageSize = 8;
@@ -104,4 +127,4 @@ async function getAnalysiss(illegallys) {
 }
 
 
-test();
+createVehicle();

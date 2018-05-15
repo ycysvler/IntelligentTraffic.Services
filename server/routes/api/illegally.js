@@ -33,6 +33,19 @@ async function getIllegallyByPlatenumber(numbers){
             });
     });
 }
+async function getVehicle(platenumber){
+    return new Promise((resolve, reject) => {
+        let Vehicle = getMongoPool('analysis').Vehicle;
+        Vehicle.find({"platenumber":platenumber},
+            (err, items) => {
+                if(err)
+                    reject(err);
+                else
+                    resolve(items[0]);
+            });
+    });
+}
+
 // 获取违法数据原始分析数据
 async function getAnalysiss(illegallys) {
     return new Promise((resolve, reject) => {
@@ -41,7 +54,7 @@ async function getAnalysiss(illegallys) {
                 let date = new moment(item.snaptime).format('YYYYMMDD');
                 let Analysis = getMongoPool(date).Analysis;
                 Analysis.find({_id:mongoose.Types.ObjectId(item.analysisid)},
-                    'vehicletype vehiclecolor vehiclemaker vehicleyear vehiclemodel vehiclebrand platenumber date',
+                    'vehicletype vehiclecolor vehiclemaker vehicleyear vehiclemodel vehiclebrand platenumber date name',
                     (err, analysis)=>{
                         cb(null,{platenumber:item.platenumber, items: analysis});
                     });
@@ -82,7 +95,8 @@ module.exports = function (router) {
         });
         let results = [];
         for(let [key,value] of map.entries()){
-            results.push({platenumber:key, items:value});
+            let vehicle = await getVehicle(key);
+            results.push({vehicle:vehicle, items:value});
         }
         res.json(results);
     });
