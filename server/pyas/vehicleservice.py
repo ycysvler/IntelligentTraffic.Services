@@ -39,6 +39,8 @@ def caculator():
         return Response('[date] parameter is missing', status=403)
     if (image is None):
         return Response('[image] parameter is missing', status=403)
+
+    print 'call date -> ', date , ' image -> ', image
     # 声明特征返回值
     result = None
     try:
@@ -82,4 +84,7 @@ class ComplexEncoder(json.JSONEncoder):
       return json.JSONEncoder.default(self, obj)
 
 if __name__ == '__main__':
+    process = Process(target=caculator_progress,args=(child_conn,))
+    # 启动计算集成等待努力工作
+    process.start()
     app.run(debug=False,host='0.0.0.0', port=7777)
