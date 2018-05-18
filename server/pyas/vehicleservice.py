@@ -7,23 +7,27 @@ import json
 import numpy
 import urllib
 import mongodb
+from multiprocessing import Process, Pipe
 sys.path.append("./dll")
 
 from IVehicleCalculator import vehicleMaster
 from flask import Flask,request ,Response
 
+parent_conn, child_conn = Pipe()
 
-modelDir = r'/home/zhq/install_lib/vehicleDll/models'
-master = vehicleMaster(modelDir,0,True,True,False)
+# 这里是一个单独的进程，用于计算特征
+def caculator_progress(conn):
+    modelDir = r'/home/zhq/install_lib/vehicleDll/models'
+    master = vehicleMaster(modelDir, 0, True, True, False)
+    print 'model init complete!'
+    # 下面是计算流程
+    while True:
+        imagepath = conn.recv()
+        im = cv2.imread(imagepath)
+        result = master.detect(im)
+        conn.send(result)
 
-# 用于json 序列化中处理numpy.float32类型
-class ComplexEncoder(json.JSONEncoder):
-  def default(self, obj):
-    if isinstance(obj, numpy.float32):
-      return round(float(obj),4)
-    else:
-      return json.JSONEncoder.default(self, obj)
-
+# 下面是Http处理部分
 app = Flask(__name__)
 
 @app.route('/caculator')
@@ -51,10 +55,11 @@ def caculator():
         file.close()
         time_file_write = time.time()
         # 计算特征值
-        im = cv2.imread(imagepath)
-        result = master.detect(im)
+        #im = cv2.imread(imagepath)
+        #result = master.detect(im)
+        parent_conn.send(imagepath)
         time_vehicle_detect = time.time()
-
+        result = parent_conn.recv()
         # 删除临时图片
         os.remove(imagepath)
         # 修改图片处理状态
@@ -67,6 +72,14 @@ def caculator():
         print "vehicle_detect: ", (time_vehicle_detect - time_start) * 1000, "ms", "*********",(time_vehicle_detect - time_file_write) * 1000
         print result
         return Response(json.dumps(result, cls=ComplexEncoder),mimetype='application/json')
+
+# 用于json 序列化中处理numpy.float32类型
+class ComplexEncoder(json.JSONEncoder):
+  def default(self, obj):
+    if isinstance(obj, numpy.float32):
+      return round(float(obj),4)
+    else:
+      return json.JSONEncoder.default(self, obj)
 
 if __name__ == '__main__':
     app.run(debug=False,host='0.0.0.0', port=7777)
