@@ -13,7 +13,10 @@ sys.path.append("./dll")
 from IVehicleCalculator import vehicleMaster
 from flask import Flask,request ,Response
 
-parent_conn, child_conn = Pipe()
+app_conn, service_conn = Pipe()
+
+def app_progress():
+    app.run(debug=False,host='0.0.0.0', port=7777)
 
 # 这里是一个单独的进程，用于计算特征
 def caculator_progress(conn):
@@ -57,11 +60,9 @@ def caculator():
         file.close()
         time_file_write = time.time()
         # 计算特征值
-        #im = cv2.imread(imagepath)
-        #result = master.detect(im)
-        parent_conn.send(imagepath)
+        app_conn.send(imagepath)
         time_vehicle_detect = time.time()
-        result = parent_conn.recv()
+        result = app_conn.recv()
         # 删除临时图片
         os.remove(imagepath)
         # 修改图片处理状态
@@ -84,7 +85,7 @@ class ComplexEncoder(json.JSONEncoder):
       return json.JSONEncoder.default(self, obj)
 
 if __name__ == '__main__':
-    process = Process(target=caculator_progress,args=(child_conn,))
+    process = Process(target=app_progress)
     # 启动计算集成等待努力工作
     process.start()
-    app.run(debug=False,host='0.0.0.0', port=7777)
+    caculator_progress(service_conn)
