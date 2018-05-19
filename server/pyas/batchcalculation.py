@@ -4,8 +4,8 @@ import mongodb
 import time
 import os
 import cv2
-from  datetime
-import numpy
+import  datetime
+
 sys.path.append("./dll")
 
 from IVehicleCalculator import vehicleMaster
@@ -22,9 +22,10 @@ def parseDatetimeFromName(name):
     second = name[12:14]
     UTC_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
     utc = year + '-' + month + '-' + day + 'T' + hour + ':' + minute + ':' + second + '.000Z'
-    dt = datetime.strptime(utc, UTC_FORMAT)
+    dt = datetime.datetime.strptime(utc, UTC_FORMAT)
     return dt
 
+# 计算结果写数据库
 def adapterAnalysis(dbdate, snaptime, name, kakouid, vehicle ):
     analysis = mongodb.db(dbdate).analysis
     print vehicle
@@ -87,29 +88,38 @@ def adapterAnalysis(dbdate, snaptime, name, kakouid, vehicle ):
 
     analysis.insert(item)
 
-def run():
-    date = '20170427'
-    i = 0
-    for item in mongodb.db(date).imagesource.find():
-        start = time.time()
-        imagepath = 'temp/' + item['name']
-        file = open(imagepath, 'wb')
-        file.write(item['source'])
-        file.close()
-        # 计算特征值
-        im = cv2.imread(imagepath)
-        result = master.detect(im)
-        # 删除临时图片
-        os.remove(imagepath)
-        end = time.time()
-        for vehicle in result:
-            adapterAnalysis(date, '', item['name'], item['kakouid'], vehicle)
-
-        print "cost time: ", (end - start) * 1000, "ms", "*********", item['name']
-        i=i+1
-        if(i>1):
-            return
+# 昨天
+def getYesterday():
+    today = datetime.date.today()
+    oneday = datetime.timedelta(days=1)
+    yesterday = today-oneday
+    return yesterday.strftime('%Y%m%d')
 
 if __name__ == '__main__':
-    run()
+    date = getYesterday()
+    date = '20170427'
+    while True:
+        print '** calculation ' + date + '***************************'
+        imagesources = mongodb.db(date).imagesource.find({'state':0}).limit(3)
+        for item in imagesources:
+            print item['name']
+            mongodb.db(date).imagesource.update({'name':item['name']},{'$set':{'state':1}})
 
+        for item in imagesources:
+            start = time.time()
+            imagepath = 'temp/' + item['name']
+            file = open(imagepath, 'wb')
+            file.write(item['source'])
+            file.close()
+            # 计算特征值
+            im = cv2.imread(imagepath)
+            result = master.detect(im)
+            # 删除临时图片
+            os.remove(imagepath)
+            end = time.time()
+            for vehicle in result:
+                adapterAnalysis(date, '', item['name'], item['kakouid'], vehicle)
+
+            print "cost time: ", (end - start) * 1000, "ms", "----", item['name']
+          
+        time.sleep(10)
