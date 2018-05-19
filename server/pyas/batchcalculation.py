@@ -109,7 +109,7 @@ if __name__ == '__main__':
     date = '20170427'
     while True:
         print '** calculation ' + date + '***************************'
-        imagesources = mongodb.db(date).imagesource.find({'state':0}).limit(3)
+        imagesources = mongodb.db(date).imagesource.find({'state':0}).limit(1)
 
         for item in imagesources:
             print 'change state > ' , item['name']
