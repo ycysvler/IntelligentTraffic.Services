@@ -6,7 +6,7 @@ import os
 import cv2
 from  datetime
 import numpy
-sys.path.append("./dll")
+sys.path.append("../dll")
 
 from IVehicleCalculator import vehicleMaster
 modelDir = r'/home/zhq/install_lib/vehicleDll/models'
