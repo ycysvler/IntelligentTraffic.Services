@@ -22,6 +22,7 @@ def adapterAnalysis(dbdate, snaptime, name, kakouid, vehicle ):
         "width": vehicle['vehicleZone'][2] - vehicle['vehicleZone'][0],
         "height": vehicle['vehicleZone'][3] - vehicle['vehicleZone'][1]
     }
+    analysis.insert(item)
 
 def run():
     date = '20170427'
