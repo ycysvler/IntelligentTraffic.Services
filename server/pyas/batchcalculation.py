@@ -45,6 +45,10 @@ def adapterAnalysis(dbdate, snaptime, name, kakouid, vehicle ):
     item['platenumber'] = ''
     item['platetype'] = ''
 
+    # 如果没能计算出车型，就返回
+    if not (hasattr(vehicle, 'vehicleType')):
+        return
+
     vehicleTypes = vehicle['vehicleType']['category'].split('_')
     item['vehicletype'] = vehicleTypes[0]
     item['vehiclebrand'] = vehicleTypes[1]
