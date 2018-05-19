@@ -312,6 +312,8 @@ const adapterAnalysis = (item, name, kakouid, vehicle) => {
     };
     // bach mongodb date, ISO
     item.date = moment('1949-10-01 12:00:00' + "Z");
+    item.snaptime = moment('1949-10-01 12:00:00' + "Z");
+
     item.platehasno = 0;
     item.platecolor = '';
     item.platenumber = '';
@@ -324,7 +326,7 @@ const adapterAnalysis = (item, name, kakouid, vehicle) => {
     item.vehicleyear = vehicleTypes[4];
     item.vehiclemaker = vehicleTypes[2];
     item.vehiclecolor = vehicle['vehicleColor']['category'];
-    item.vehiclescore = vehicle['vehicleColor']['score'];
+    item.vehiclescore = vehicle['vehicleType']['score'];
     item.vehicletype = vehicleTypes[0];
 
     item.vehicleposture = vehicle["vehiclePosture"]['category'] === "车头" ? 0 : 1;
