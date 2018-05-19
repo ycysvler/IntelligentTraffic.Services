@@ -4,7 +4,7 @@ import mongodb
 import time
 import os
 import cv2
-import  datetime
+import datetime
 
 sys.path.append("./dll")
 
@@ -101,11 +101,11 @@ if __name__ == '__main__':
     while True:
         print '** calculation ' + date + '***************************'
         imagesources = mongodb.db(date).imagesource.find({'state':0}).limit(3)
-        for item in imagesources:
-            print item['name']
-            mongodb.db(date).imagesource.update({'name':item['name']},{'$set':{'state':1}})
 
         for item in imagesources:
+            print 'change state > ' , item['name']
+            mongodb.db(date).imagesource.update({'name':item['name']},{'$set':{'state':1}})
+            print 'calculation > ', item['name']
             start = time.time()
             imagepath = 'temp/' + item['name']
             file = open(imagepath, 'wb')
@@ -119,7 +119,6 @@ if __name__ == '__main__':
             end = time.time()
             for vehicle in result:
                 adapterAnalysis(date, '', item['name'], item['kakouid'], vehicle)
-
-            print "cost time: ", (end - start) * 1000, "ms", "----", item['name']
-          
+            mongodb.db(date).imagesource.update({'name': item['name']}, {'$set': {'state': 2}})
+            print "cost time > ",item['name'],"----", (end - start) * 1000, "ms"
         time.sleep(10)
