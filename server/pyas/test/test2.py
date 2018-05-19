@@ -1,7 +1,8 @@
 #coding=utf-8
 import sys
-import redisdb
 sys.path.append("../")
+
+import redisdb
 
 r = redisdb.db()
 # key是"gender" value是"male" 将键值对存入redis缓存
