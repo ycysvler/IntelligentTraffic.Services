@@ -5,8 +5,11 @@ import time
 import os
 import cv2
 import datetime
+import redisdb
 
 sys.path.append("./dll")
+
+rds = redisdb.db()
 
 from IVehicleCalculator import vehicleMaster
 modelDir = r'/home/zhq/install_lib/vehicleDll/models'
@@ -91,6 +94,8 @@ def adapterAnalysis(dbdate, snaptime, name, kakouid, vehicle ):
             }
 
     analysis.insert(item)
+    # 发送分析通知，供大数据分析
+    rds.publish('vehicle', item)
 
 # 昨天
 def getYesterday():
