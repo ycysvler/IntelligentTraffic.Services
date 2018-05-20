@@ -96,6 +96,8 @@ def adapterAnalysis(dbdate, snaptime, name, kakouid, vehicle ):
             }
 
     analysis.insert(item)
+
+    print item
     # 发送分析通知，供大数据分析
     data = {}
     data["platenumber"] = urlencode(item["platenumber"])
