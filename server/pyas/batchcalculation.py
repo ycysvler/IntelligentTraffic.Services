@@ -63,7 +63,7 @@ def adapterAnalysis(dbdate, snaptime, name, kakouid, vehicle ):
 
     item['vehicleposture'] = 0 if vehicle["vehiclePosture"]['category'] ==  "车头" else 1
 
-    if hasattr(vehicle, 'vehicleStruct'):
+    if 'vehicleStruct' in vehicle:
         item['withFrontWindowLabelInspection'] =1 if vehicle["vehicleStruct"]["withFrontWindowLabelInspection"] else 0
         item['withFrontWindowAccessories'] = 1 if vehicle["vehicleStruct"]["withFrontWindowAccessories"] else 0
         item['isTaxi'] = 1 if vehicle["vehicleStruct"]["isTaxi"] else 0
@@ -75,7 +75,7 @@ def adapterAnalysis(dbdate, snaptime, name, kakouid, vehicle ):
         item['withSunShieldDown'] = 1 if vehicle["vehicleStruct"]["withSunShieldDown"] else 0
         item['withSkyRoof'] = 1 if vehicle["vehicleStruct"]["withSkyRoof"] else 0
 
-        if hasattr(vehicle["vehicleStruct"], 'driveSeatZone'):
+        if 'driveSeatZone' in vehicle["vehicleStruct"]:
             item['driverSeatZone'] = {
                 "x": vehicle["vehicleStruct"]["driveSeatZone"][0],
                 "y": vehicle["vehicleStruct"]["driveSeatZone"][1],
@@ -84,7 +84,7 @@ def adapterAnalysis(dbdate, snaptime, name, kakouid, vehicle ):
                 "score": vehicle["vehicleStruct"]["driveSeatZone"][4],
             }
 
-        if hasattr(vehicle["vehicleStruct"], 'skyRoof'):
+        if 'skyRoof' in vehicle["vehicleStruct"]:
             item['skyRoof'] = {
                 "x": vehicle["vehicleStruct"]["skyRoof"][0],
                 "y": vehicle["vehicleStruct"]["skyRoof"][1],
@@ -95,7 +95,19 @@ def adapterAnalysis(dbdate, snaptime, name, kakouid, vehicle ):
 
     analysis.insert(item)
     # 发送分析通知，供大数据分析
-    rds.publish('vehicle', item)
+    data = {}
+    data["platenumber"] = item["platenumber"]
+    data["platecolor"] = item["platecolor"]
+    data["platetype"] = item["platetype"]
+    data["vehiclebrand"] = item["vehiclebrand"]
+    data["vehiclemodel"] = item["vehiclemodel"]
+    data["vehicleyear"] = item["vehicleyear"]
+    data["vehiclemaker"] = item["vehiclemaker"]
+    data["vehiclecolor"] = item["vehiclecolor"]
+    data["vehicletype"] = item["vehicletype"]
+    data["vehiclescore"] = item["vehiclescore"]
+
+    rds.publish('vehicle',data)
 
 # 昨天
 def getYesterday():
