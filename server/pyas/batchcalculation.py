@@ -7,6 +7,7 @@ import os
 import cv2
 import datetime
 import redisdb
+from urllib import urlencode
 
 sys.path.append("./dll")
 
@@ -97,16 +98,16 @@ def adapterAnalysis(dbdate, snaptime, name, kakouid, vehicle ):
     analysis.insert(item)
     # 发送分析通知，供大数据分析
     data = {}
-    data["platenumber"] = item["platenumber"]
-    data["platecolor"] = item["platecolor"]
-    data["platetype"] = item["platetype"]
-    data["vehiclebrand"] = item["vehiclebrand"]
-    data["vehiclemodel"] = item["vehiclemodel"]
-    data["vehicleyear"] = item["vehicleyear"]
-    data["vehiclemaker"] = item["vehiclemaker"]
-    data["vehiclecolor"] = item["vehiclecolor"]
-    data["vehicletype"] = item["vehicletype"]
-    data["vehiclescore"] = item["vehiclescore"]
+    data["platenumber"] = urlencode(item["platenumber"])
+    data["platecolor"] = urlencode(item["platecolor"])
+    data["platetype"] = urlencode(item["platetype"])
+    data["vehiclebrand"] = urlencode(item["vehiclebrand"])
+    data["vehiclemodel"] = urlencode(item["vehiclemodel"])
+    data["vehicleyear"] = urlencode(item["vehicleyear"])
+    data["vehiclemaker"] = urlencode(item["vehiclemaker"])
+    data["vehiclecolor"] = urlencode(item["vehiclecolor"])
+    data["vehicletype"] = urlencode(item["vehicletype"])
+    data["vehiclescore"] = urlencode(item["vehiclescore"])
 
     rds.publish('vehicle',data)
 
