@@ -5,6 +5,7 @@ from vehicleTypeColor import IVehicleColorClassifier
 from vehicleTypeHead import IVehicleHeadClassifier
 from vehicleTypeTail import IVehicleTailClassifier
 from vehicleStruct import IVehicleStructure
+from IPlateRecognize import IPlateRecognize
 from flask import Flask,request ,Response
 import json
 import os
@@ -20,6 +21,7 @@ class vehicleMaster:
         self.__vehicleColor = vehicleColor
         self.__vehicleType = vehicleType
         self.__vehicleStruct = vehicleStruct
+        self.__vehiclePlateDetector = IPlateRecognize(modelDir)
 
         if self.__vehicleColor:
             self.__vehicleColorClassifier = IVehicleColorClassifier(modelDir,gpu_id)
@@ -52,6 +54,7 @@ class vehicleMaster:
             result = {}
             result["vehicleZone"] = zone
             im_roi = im[zone[1]:zone[3],zone[0]:zone[2]]
+            result['vehiclePlateLicense'] = self.__vehiclePlateDetector.detect(im_roi)
             if self.__vehicleColor:
                 colorResult = self.__vehicleColorClassifier.classify(im_roi)
 		result['vehicleColor'] = colorResult
