@@ -260,6 +260,7 @@ module.exports = function (router) {
                                 console.log('err', err);
                                 res.send(500, err);
                             } else {
+                                console.log('json', body);
                                 let results = JSON.parse(body);
                                 console.log('request caculator > ', results);
                                 // write analysis
@@ -315,9 +316,11 @@ const adapterAnalysis = (item, name, kakouid, vehicle) => {
     item.snaptime = moment('1949-10-01 12:00:00' + "Z");
 
     item.platehasno = 0;
-    item.platecolor = '';
-    item.platenumber = '';
     item.platetype = '';
+    if (vehicle["vehiclePlateLicense"]){
+        item.platenumber = vehicle["vehiclePlateLicense"]['license'];
+        item.platecolor = vehicle["vehiclePlateLicense"]['color'];
+    }
 
     let vehicleTypes = vehicle['vehicleType']['category'].split('_');
 
