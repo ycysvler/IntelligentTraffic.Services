@@ -10,3 +10,4 @@ r.set('gender', 'male')
 # gender 取出键male对应的值
 print(r.get('gender'))
 
+r.publish('test01','hello word')

@@ -44,7 +44,9 @@ module.exports = class Schemas{
         // 车辆出现统计
         this.appearSchema = new mongoose.Schema({
             platenumber:{type: String,index: true},                         //  车牌识别 > 车牌号码
-            appears:[]                                                      //  里面是原始表analysisid，snaptime,createtime
+            analysisid:{type: String,index: true},                          //  原始分析信息表的ID
+            snaptime:Date,                                                  //  抓拍时间
+            createtime:Date                                                 //  创建时间（计算完成车型信息的时间）
         });
         //this.illegallySchema.index({platenumber:1,vehiclebrand,vehiclemodel,vehicleyear,vehiclemaker,vehicletype });
         this.Appear = conn.model('Appear', this.appearSchema,'appear');
