@@ -2,7 +2,7 @@
  * Created by ZHQ on 2017/8/3.
  */
 module.exports = {
-    uri: 'mongodb://192.168.31.233/',
+    uri: 'mongodb://192.168.31.34/',
     options: {
         useMongoClient: true,
         server: {socketOptions: {keepAlive: 1}},

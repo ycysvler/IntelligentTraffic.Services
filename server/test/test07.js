@@ -5,24 +5,31 @@
 
 let Redis = require('ioredis');
 let rediscfg = require('../config/redis');
-let redis = new Redis(rediscfg);
+let redis = new Redis(rediscfg);        // 订阅通知与普通读写不能共用
+let sub = new Redis(rediscfg);          // 订阅通知与普通读写不能共用
 let moment = require('moment');
 let getMongoPool = require('../mongo/pool');
 
-redis.on('message', function (channel, message) {
-    console.log(channel, message);
+redis.on("error", function (err) {
+    console.log("Error " + err);
+});
 
+
+sub.on('message', function (channel, message) {
+    console.log(channel, message);
     let obj = JSON.parse(message);
     console.log(obj);
-
     if(data.platenumber.length > 2)
         test(obj);
 });
 
+sub.subscribe(
+    'vehicle',
+    function (err, count) {
+    });
+
 
 async function test(data) {
-
-
     let vehicle = await getVehicle(data.platenumber);
     if (vehicle) {
         // 已存在，判断套牌逻辑
@@ -56,11 +63,6 @@ async function test(data) {
     appear.createtime = moment();
     appear.save((err, item)=>{})
 }
-
-redis.subscribe(
-    'vehicle',
-    function (err, count) {
-    });
 
 async function createVehicle(data){
     let Vehicle = getMongoPool('analysis').Vehicle;
@@ -102,5 +104,4 @@ async function getVehicle(platenumber) {
         });
     });
 }
-
 
