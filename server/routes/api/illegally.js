@@ -11,6 +11,8 @@ let async = require('async');
 async function distPlatenumber(){
     return new Promise((resolve, reject) => {
         let Illegally = getMongoPool('analysis').Illegally;
+        let query = Illegally.distinct('platenumber', {"state": 0});
+
         Illegally.distinct('platenumber', {"state": 0},
             (err, items) => {
                 if(err)
@@ -73,8 +75,9 @@ module.exports = function (router) {
 
     // PaaS -> 套牌 -> 查询
     router.get('/illegally',async (req, res, next) => {
-        let pageSize = 8;
-        let current = 1;
+        let pageSize = req.query.pagesize ? req.query.pagesize * 1 : 8;
+        let current = req.query.current ? req.query.current * 1 : 1;
+        console.log(pageSize, current);
         let items = await distPlatenumber();
         items = items.slice((current - 1) * pageSize, current * pageSize);
         console.log('platenumbers', items);
