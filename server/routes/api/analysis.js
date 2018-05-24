@@ -192,6 +192,8 @@ module.exports = function (router) {
                         // async call
                         let kakou = await kkLogic.getKakou(item.kakouid);
                         item["address"] = kakou.address;
+                        item["lng"] = kakou.lng;
+                        item["lat"] = kakou.lat;
                         temps.push(item);
                     }
 
