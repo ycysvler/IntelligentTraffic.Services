@@ -73,7 +73,7 @@ let ipvalidate = require('./server/connect/ipvalidate');
 // paas 相关接口
 app.use('/api', loader(path.join(__dirname, './server/routes/api'), true));
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public/dist')));
 
 app.get('/*', function (req, res) {
     res.sendFile(path.join(__dirname, 'public/dist', 'index.html'));
