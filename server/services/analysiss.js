@@ -28,14 +28,13 @@ async function analysis(data) {
             || vehicle.vehicleyear != data.vehicleyear
             || vehicle.vehiclemaker != data.vehiclemaker
             || vehicle.vehiclecolor != data.vehiclecolor
-            || vehicle.vehicletype != data.vehicletype
-            || vehicle.vehiclescore != data.vehiclescore){
+            || vehicle.vehicletype != data.vehicletype){
             let Illegally = getMongoPool('analysis').Illegally;
             let illegally = new Illegally();
             illegally.platenumber = data.platenumber;
             illegally.analysisid = data._id;
             illegally.state = 0;
-            illegally.snaptime = moment( data.snaptime+"Z");
+            illegally.snaptime = moment( data.snaptime);
             illegally.createtime = moment();
             illegally.save((err, item)=>{})
         }
@@ -49,7 +48,7 @@ async function analysis(data) {
     let appear = new Appear();
     appear.platenumber = data.platenumber;
     appear.analysisid = data._id;
-    appear.snaptime = moment( data.snaptime+"Z");
+    appear.snaptime = moment( data.snaptime);
     appear.createtime = moment();
     appear.save((err, item)=>{})
 }
@@ -73,7 +72,7 @@ async function createVehicle(data){
     newItem.vehiclecolor = data.vehiclecolor;
     newItem.vehicletype = data.vehicletype;
     newItem.vehiclescore = data.vehiclescore;
-    newItem.createtime = moment( data.snaptime+"Z");
+    newItem.createtime = moment( data.snaptime);
 
     return new Promise(function (resolve, reject) {
         newItem.save((err, item) => {

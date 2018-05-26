@@ -71,7 +71,7 @@ module.exports = function (router) {
         item.kakouid = body.kakouid;
         item.vehiclezone = body.vehiclezone;
         // bach mongodb date, ISO
-        item.date = moment(body.date + "Z");
+        item.date = moment(body.date);
         item.platehasno = body.platehasno;
         item.platecolor = body.platecolor;
         item.platenumber = body.platenumber;
@@ -157,7 +157,7 @@ module.exports = function (router) {
             param.platenumber = RegExp;
         }
 
-        param.$and = [{date: {$gte: new moment(req.body.begin + "Z")}}, {date: {$lte: new moment(req.body.end + "Z")}}];
+        param.$and = [{date: {$gte: new moment(req.body.begin)}}, {date: {$lte: new moment(req.body.end)}}];
 
         console.log('param', param);
 
@@ -314,8 +314,8 @@ const adapterAnalysis = (item, name, kakouid, vehicle) => {
         "height": vehicle['vehicleZone'][3] - vehicle['vehicleZone'][1]
     };
     // bach mongodb date, ISO
-    item.date = moment('1949-10-01 12:00:00' + "Z");
-    item.snaptime = moment('1949-10-01 12:00:00' + "Z");
+    item.date = moment('1949-10-01 12:00:00');
+    item.snaptime = moment('1949-10-01 12:00:00');
 
     item.platehasno = 0;
     item.platetype = '';
