@@ -55,9 +55,11 @@ async function getAnalysiss(illegallys) {
             (item,cb)=>{
                 let date = new moment(item.snaptime).format('YYYYMMDD');
                 let Analysis = getMongoPool(date).Analysis;
+
                 Analysis.find({_id:mongoose.Types.ObjectId(item.analysisid)},
                     'vehicletype vehiclecolor vehiclemaker vehicleyear vehiclemodel vehiclebrand platenumber date name',
                     (err, analysis)=>{
+                        console.log(item.createtime,moment(item.createtime).format(), item.snaptime,moment(item.snaptime).format(), date, item.platenumber, item.analysisid, analysis.length);
                         cb(null,{platenumber:item.platenumber, items: analysis});
                     });
             },
@@ -80,11 +82,11 @@ module.exports = function (router) {
         console.log(pageSize, current);
         let items = await distPlatenumber();
         items = items.slice((current - 1) * pageSize, current * pageSize);
-        console.log('platenumbers', items);
+        //console.log('platenumbers', items);
         items = await getIllegallyByPlatenumber(items);
-        console.log('illegallys', items);
+        //console.log('illegallys', items);
         items = await getAnalysiss(items);
-        console.log('analysisss', items);
+        //console.log('analysisss', items);
 
         let map = new Map();
         items.forEach((item,index)=>{
