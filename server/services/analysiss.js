@@ -10,9 +10,11 @@ redis.on('message', function (channel, message) {
     let obj = JSON.parse(message);
     //console.log(obj);
 
-    if(data.platenumber.length > 2)
+    if(obj.platenumber.length > 2)
         analysis(obj);
 });
+
+console.log('analysiss service start!');
 
 
 async function analysis(data) {
