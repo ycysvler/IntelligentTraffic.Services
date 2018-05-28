@@ -93,6 +93,36 @@ module.exports = function (router) {
             }
         });
     });
+    router.get('/analysis/image/:date/:id',(req,res,next)=>{
+        let date = req.params.date;
+        let id = req.params.id;
+        let Analysis = getMongoPool(date).Analysis;
+        Analysis.findOne({_id: id}, function (err, item) {
+            let x0 = item.x;
+            let y0 = item.y;
+            let x1 = x0 + item.width;
+            let y1 = y0 + item.height;
+
+            let ImageSource = getMongoPool(date).ImageSource;
+
+            ImageSource.findOne({name: item.name}, 'source', function (err, item) {
+                if (err) {
+                    res.send(err);
+                } else {
+                    gm(item.source)
+                        .stroke("black", 3)
+                        .fill('transparent')
+                        .drawRectangle(x0, y0, x1, y1)
+                        .toBuffer('JPEG', (err,buffer)=>{
+                            if(err)
+                                console.log('err', err);
+
+                            res.send(buffer);
+                        })
+                }
+            });
+        });
+    });
 
     // PaaS -> 查询 -> 查询分析详情
     router.get('/analysis/info/:date/:id', (req, res, next) => {
