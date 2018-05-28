@@ -7,6 +7,7 @@ let uuid = require('uuid');
 let path = require('path');
 let async = require('async');
 let fs = require('fs');
+let gm = require('gm').subClass({imageMagick:true});
 let mongoose = require('mongoose');
 const request = require('request');
 const config_calculator = require('../../config/calculator');
