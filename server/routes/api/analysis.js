@@ -99,10 +99,13 @@ module.exports = function (router) {
         let id = req.params.id;
         let Analysis = getMongoPool(date).Analysis;
         Analysis.findOne({_id: id}, function (err, item) {
-            let x0 = item.x;
-            let y0 = item.y;
-            let x1 = x0 + item.width;
-            let y1 = y0 + item.height;
+
+            let x0 = item.vehiclezone.x;
+            let y0 = item.vehiclezone.y;
+            let x1 = x0 + item.vehiclezone.width;
+            let y1 = y0 + item.vehiclezone.height;
+
+            console.log(x0, y0, x1, y1);
 
             let ImageSource = getMongoPool(date).ImageSource;
 
