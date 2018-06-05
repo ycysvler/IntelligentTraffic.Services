@@ -114,7 +114,7 @@ module.exports = function (router) {
                     res.send(err);
                 } else {
                     gm(item.source)
-                        .stroke("black", 3)
+                        .stroke("red", 3)
                         .fill('transparent')
                         .drawRectangle(x0, y0, x1, y1)
                         .toBuffer('JPEG', (err,buffer)=>{
