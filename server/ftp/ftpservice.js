@@ -26,13 +26,13 @@ ftp.on('ready',()=>{
 
 ftp.connect(config_ftp);
 
-let url = config_calculator.url + '/calculator' + "?image=23.jpg";
-
-request({url:url,gzip:true}, (err, res, body)=>{
-    if(err){
-        console.log('err',err);
-    }else{
-        console.log(JSON.parse(body));
-    }
-
-});
+// let url = config_calculator.url + '/calculator' + "?image=23.jpg";
+//
+// request({url:url,gzip:true}, (err, res, body)=>{
+//     if(err){
+//         console.log('err',err);
+//     }else{
+//         console.log(JSON.parse(body));
+//     }
+//
+// });
