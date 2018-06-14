@@ -13,9 +13,12 @@ from ctypes import *
 # 不确定FTP服务编码,我的是gbk: 'UTF-8','gbk','GB2312','GB18030','Big5','HZ'
 descode = 'gbk'
 # 链接FTP的配置数据
-host = '192.168.31.200' #'10.10.22.209'
+host = '192.168.31.200'
+host = '10.10.22.209'
 username = 'ftp' #'ycysvler@hotmail.com'
+username = 'ycysvler@hotmail.com'
 password = 'ftp' #'1qaz!QAZ'
+password = '1qaz!QAZ'
 #-------------------------------------------------------------------------
 
 
@@ -30,6 +33,6 @@ if __name__ == "__main__":
      
     ftp = MyFtp(host) 
     ftp.Login(username, password) 
-    ftp.DownLoadByDate(args.date,args.date)
+    ftp.DownLoadByDate(args.date)
     ftp.close()
      
