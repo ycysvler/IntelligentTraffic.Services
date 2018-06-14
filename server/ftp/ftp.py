@@ -7,7 +7,10 @@ import time
 import logging
 import argparse
 import json
-from mongodb import db
+import mongodb
+import chardet
+import bson.binary
+from cStringIO import StringIO
 from ctypes import *
 from ftplib import FTP 
 from log import logger
@@ -18,6 +21,7 @@ class MyFtp:
     ftp = FTP()
     ftp.encoding = 'utf8'
     descode = 'gbk'  
+    
     # 'UTF-8','gbk','GB2312','GB18030','Big5','HZ'
 
     def __init__(self, host, port='21'):        
@@ -38,23 +42,7 @@ class MyFtp:
         if self.path in result and "<dir>" in result:
             self.bIsDir = True
 
-    
-    def dir(self):
-        lst = self.ftp.retrlines( 'LIST' )
-        result = lst.lower().split( "\n" )
-        for item in result:
-            print item.decode(self.descode,'strict')
-            print '----'
-         
 
-    def nlst(self):
-        descode = 'gbk'
-        lst = self.ftp.nlst()
-        for item in lst: 
-            file = item.decode(descode,'strict') 
-            (shotname,extension) =  os.path.splitext(file)
-            print extension
-    
 
     def isDir(self, path):
         self.bIsDir = False
@@ -63,25 +51,11 @@ class MyFtp:
         self.ftp.retrlines( 'LIST', self.show )
         return self.bIsDir
 
-    def DownLoadFileTree(self, LocalDir, RemoteDir):
-        print "remoteDir:", RemoteDir
-        if os.path.isdir( LocalDir ) == False:
-            os.makedirs( LocalDir )
-        self.ftp.cwd( RemoteDir )
-        RemoteNames = self.ftp.nlst()  
-        print "RemoteNames", RemoteNames
-        print self.ftp.nlst("/del1")
-        for file in RemoteNames:
-            Local = os.path.join( LocalDir, file )
-            if self.isDir( file ):
-                self.DownLoadFileTree( Local, file )                
-            else:
-                self.DownLoadFile( Local, file )
-        self.ftp.cwd( ".." )
-        return
 
-    def DownLoadByDate(self, LocalDir, RemoteDir):
-        LocalDir = 'image/' + LocalDir + '/'
+
+    def DownLoadByDate(self, date):       
+         
+        LocalDir = 'image/' + date + '/'
         RemoteDir = '/' + LocalDir
 
         logger.info({"content":"start downloading > %s"%(RemoteDir)})
@@ -96,35 +70,65 @@ class MyFtp:
                 file = item.decode(self.descode,'strict')  
                 (shotname,extension) =  os.path.splitext(file)
                 if extension == "":
-                    self.DownLoadByDir(LocalDir + file + '/', RemoteDir + file + '/', item)               
+                    self.DownLoadByDir(LocalDir + file + '/', RemoteDir + file + '/', item, date, file)               
 
-        except Exception,e:   
-            logger.warning(json.dumps({"content":e}))
+        except Exception,e:
+            logger.warning({"content":"%s"%e})
 
-    def DownLoadByDir(self, LocalDir, RemoteDir, dirName):  
-        logger.info({"content":"start downloading > %s [code > %s]"%(RemoteDir,dirName)})
+    def DownLoadByDir(self, LocalDir, RemoteDir, dirName,date,rowCode):  
+        logger.info({"content":"start downloading > %s %s %s"%(date, rowCode, RemoteDir)})
         if os.path.isdir( LocalDir ) == False:
             os.makedirs( LocalDir )
 
-        try:        
+        try:
+            # mongodb image
+            imagesource = mongodb.db(date).imagesource
+            dbimagecount = imagesource.count({"kakouid":rowCode})  
+            logger.info({"content":"   db image count > %s %s > %s"%(date, rowCode, dbimagecount)})
+
             self.ftp.cwd(RemoteDir)
             lst = self.ftp.nlst()
-            for item in lst: 
-                file = item.decode(self.descode,'strict')  
-                # if image is type of 5
-                if self.checkFileIs5(file):
-                    if self.checkFileExists(file):                                           
-                        logger.info({"content":'     [ is exist ] > %s'%(file)})
-                    else:                        
-                        (shotname,extension) =  os.path.splitext(file) 
-                        logger.info({"content":'    download file > %s'%(file)})
-                        self.downloadfile(item, LocalDir + file)
-                        # write mongodb
-                else: 
-                    logger.info({"content":'       not type 5 > %s'%(file)})
+            ftpimagecount = len(lst)
+
+            logger.info({"content":"  ftp image count > %s %s > %s"%(date, rowCode, ftpimagecount)})
+            
+            if ftpimagecount > dbimagecount or True:
+                for item in lst: 
+                    file = '%s'%item.decode(self.descode,'strict')
+                     
+                    #file = file.encode('utf8')
+                    
+                    # if image is type of 5
+                    if self.checkFileIs5(file):
+                        if self.checkFileExists(date, file):                                           
+                            logger.info({"content":'     [ is exist ] > %s'%(file)})
+                        else:                        
+                            (shotname,extension) =  os.path.splitext(file) 
+                            logger.info({"content":'    download file > %s'%(file)})
+                            self.downloadfile(item, LocalDir + file)
+                            # write mongodb
+                            self.writeImageToDb(date, rowCode, file, LocalDir + file)
+
+                    else: 
+                        logger.info({"content":'   [ not type 5 ] > %s'%(file)})
+            else:                
+                logger.info({"content":'      no new file > %s %s'%(date, rowCode)})
 
         except Exception,e:   
-            logger.warning({"content":e})
+            logger.warning({"content":'%s'%e})
+
+    def writeImageToDb(self, date, rowCode,name,filename):
+        imagesource = mongodb.db(date).imagesource
+        #获得一个collection        
+        with open (filename,'rb') as myimage:  
+            content = StringIO(myimage.read())  
+            imagesource.insert(dict(  
+            source= bson.binary.Binary(content.getvalue()),  
+            name = name.encode('utf8'),
+            state = 0,
+            kakouid = rowCode
+          ))  
+         
 
     def checkFileIs5(self, fileName):
         strings = fileName.split('_')
@@ -133,8 +137,10 @@ class MyFtp:
                 return True
         return False
 
-    def checkFileExists(self, filename):
-        return False
+    def checkFileExists(self, date, name):
+        imagesource = mongodb.db(date).imagesource
+        count = imagesource.count({'name':name.encode('utf8')}) 
+        return count > 0
 
     def downloadfile(self,remotepath, localpath): 
         bufsize = 1024                #设置缓冲块大小
@@ -142,6 +148,7 @@ class MyFtp:
         self.ftp.retrbinary('RETR ' + remotepath, fp.write, bufsize) #接收服务器上文件并写入本地文件
         self.ftp.set_debuglevel(0)    #关闭调试
         fp.close()                    #关闭文件
+        return localpath
   
     def close(self): 
         logger.info({"content":'ftp quit'})
