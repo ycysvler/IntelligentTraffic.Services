@@ -4,9 +4,11 @@
 import os
 import sys
 import time
+import datetime
 import logging
 import argparse
 import json
+import pymongo
 import mongodb
 import chardet
 import bson.binary
@@ -119,6 +121,11 @@ class MyFtp:
 
     def writeImageToDb(self, date, rowCode,name,filename):
         imagesource = mongodb.db(date).imagesource
+
+        UTC_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
+        utc = date[0:4] + '-' + date[4:6] + '-' + date[6:8] + 'T' + '12:00:00.000Z'         
+        snaptime = datetime.datetime.strptime(utc, UTC_FORMAT)
+
         #获得一个collection        
         with open (filename,'rb') as myimage:  
             content = StringIO(myimage.read())  
@@ -126,6 +133,8 @@ class MyFtp:
             source= bson.binary.Binary(content.getvalue()),  
             name = name.encode('utf8'),
             state = 0,
+            snaptime = snaptime,
+            createtime = datetime.datetime.utcnow(),
             kakouid = rowCode
           ))  
          
