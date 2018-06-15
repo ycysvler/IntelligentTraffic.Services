@@ -9,8 +9,8 @@ import argparse
 import json 
 from ftp import MyFTP
 from log import logger
-from ctypes import *
-
+from ctypes import * 
+from concurrent.futures import ThreadPoolExecutor
 # 不确定FTP服务编码,我的是gbk: 'UTF-8','gbk','GB2312','GB18030','Big5','HZ'
 descode = 'gbk'
 # 链接FTP的配置数据
@@ -29,6 +29,10 @@ def getYestoday():
     yestoday = n_days.strftime('%Y-%m-%d')
     return yestoday
 
+def hello(msg,aa):
+    print 'hello > ', msg , aa
+    time.sleep(5)
+
 if __name__ == "__main__":
     # 格式化成2016-03-20 11:45:39形式 
     parser = argparse.ArgumentParser()
@@ -39,10 +43,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
       
     rundate = args.date
-
+ 
     while True:
         logger.info({"content":'---------------- [ %s ] ----------------'%(rundate)})
-        ftp = MyFtp(host,rundate) 
+        ftp = MyFTP(host,rundate) 
         ftp.Login(username, password) 
         ftp.DownLoadByDate()
         ftp.close()

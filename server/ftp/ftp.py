@@ -16,7 +16,7 @@ from cStringIO import StringIO
 from ctypes import *
 from ftplib import FTP 
 from log import logger
-
+from concurrent.futures import ThreadPoolExecutor
 #-------------------------------------------------------------------------
 
 class MyFTP:
@@ -78,30 +78,32 @@ class MyFTP:
 
             logger.info({"content":"  ftp image count > %s %s > %s"%(self.date, rowCode, ftpimagecount)})
             
-            if ftpimagecount > dbimagecount or True:
-                for item in lst: 
-                    file = '%s'%item.decode(self.descode,'strict')
-                     
-                    #file = file.encode('utf8')
-                    
-                    # if image is type of 5
-                    if self.checkFileIs5(file):
-                        if self.checkFileExists(self.date, file):                                           
-                            logger.info({"content":' [ img is exist ] > %s'%(file)})
-                        else:                        
-                            (shotname,extension) =  os.path.splitext(file) 
-                            logger.info({"content":'    download file > %s'%(file)})
-                            self.downloadfile(item, LocalDir + file)
-                            # write mongodb
-                            self.writeImageToDb(self.date, rowCode, file, LocalDir + file)
-
-                    else: 
-                        logger.info({"content":'   [ not type 5 ] > %s'%(file)})
+            if ftpimagecount > dbimagecount or True: 
+                # thread pool 
+                with ThreadPoolExecutor(4) as executor:
+                    for item in lst: 
+                        executor.submit(self.pool, item, rowCode, LocalDir)  
             else:                
                 logger.info({"content":'      no new file > %s %s'%(self.date, rowCode)})
 
         except Exception,e:   
             logger.warning({"content":'%s'%e})
+
+    def pool(self, item, rowCode, LocalDir):
+        # chinese file name
+        file = '%s'%item.decode(self.descode,'strict')
+        # check type of 5 image
+        if self.checkFileIs5(file):
+            # check the image is exist
+            if self.checkFileExists(self.date, file):                                           
+                logger.info({"content":' [ img is exist ] > %s'%(file)}) 
+            else:
+                logger.info({"content":'    download file > %s'%(file)})
+                self.downloadfile(item, LocalDir + file)
+                # write mongodb
+                self.writeImageToDb(self.date, rowCode, file, LocalDir + file)
+        else: 
+            logger.info({"content":'   [ not type 5 ] > %s'%(file)}) 
 
     def writeImageToDb(self, date, rowCode,name,filename): 
         UTC_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
