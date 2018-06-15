@@ -29,10 +29,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
      
     logger.info({"content":'---------------- [ %s ] ----------------'%(args.date)})
-    logger.info({"content":'connected host=%s username=%s password=%s'%(host, username, password)})
      
-    ftp = MyFtp(host) 
+    ftp = MyFtp(host,args.date) 
     ftp.Login(username, password) 
-    ftp.DownLoadByDate(args.date)
+    ftp.DownLoadByDate()
     ftp.close()
      
