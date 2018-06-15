@@ -19,7 +19,7 @@ from log import logger
 
 #-------------------------------------------------------------------------
 
-class MyFtp:
+class MyFTP:
     ftp = FTP()
     ftp.encoding = 'utf8'
     descode = 'gbk'  
@@ -36,7 +36,7 @@ class MyFtp:
             
     def Login(self, user, passwd):        
         self.ftp.login( user, passwd ) 
-        logger.info({"content":'connected host=%s username=%s password=%s'%(self.host, user, passwd)})    
+        logger.info({"content":'ftp host=%s username=%s password=%s'%(self.host, user, passwd)})    
         logger.info({"content":self.ftp.welcome})
   
     def DownLoadByDate(self):         

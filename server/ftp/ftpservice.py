@@ -6,8 +6,8 @@ import sys
 import time
 import datetime
 import argparse
-import json
-from ftp import MyFtp
+import json 
+from ftp import MyFTP
 from log import logger
 from ctypes import *
 
