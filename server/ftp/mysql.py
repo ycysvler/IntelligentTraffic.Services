@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 import MySQLdb
+import datetime
+import uuid
 from log import logger
 #-------------------------------------------------------------------------
 
@@ -17,20 +19,23 @@ class MySQL:
     
     def image_insert(self, item): 
         logger.info({"content":'insert image %s'%(item)}) 
+        now = datetime.datetime.now()
+        t = now.strftime("%Y-%m-%d %H:%M:%S")
+        print t
         # SQL 插入语句
-        sql = "INSERT INTO IMAGES(id, \
-               image, date, servercode, status) \
-               VALUES ('%s', '%s', '%s', '%d', '%d' )" % \
-               (item['id'], item['image'], item['date'], 0, 0)
-        
+        sql = "INSERT INTO IMAGES(id, image, date, servercode, status, createtime, downtime) \
+               VALUES ('%s', '%s', '%s', '%d', '%d' , '%s', '%s')" % \
+               (item['id'], item['image'], item['date'], 0, 0, t, t )
+        print sql
         try:
             # 执行sql语句
             self.cursor.execute(sql)
             # 提交到数据库执行
             self.db.commit()
-        except:
+        except Exception,e:
             # 发生错误时回滚
-            db.rollback()
+            logger.warning({"content":'%s'%e})
+            self.db.rollback()
 
 
     def tt(self):
@@ -52,7 +57,7 @@ class MySQL:
 
 if __name__ == "__main__":
     mysql = MySQL()
-    mysql.image_insert({'id':'332','image':'aa','date':'2018'})
+    mysql.image_insert({'id':uuid.uuid1(),'image':'aa3','date':'2018'})
     mysql.close()
      
 
