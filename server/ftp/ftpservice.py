@@ -4,6 +4,7 @@
 import os
 import sys
 import time
+import datetime
 import argparse
 import json
 from ftp import MyFtp
@@ -21,17 +22,35 @@ password = 'ftp' #'1qaz!QAZ'
 password = '1qaz!QAZ'
 #-------------------------------------------------------------------------
 
+def getYestoday():
+    now = datetime.datetime.now()
+    delta = datetime.timedelta(days=-1)
+    n_days = now + delta
+    yestoday = n_days.strftime('%Y-%m-%d')
+    return yestoday
 
 if __name__ == "__main__":
     # 格式化成2016-03-20 11:45:39形式 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--date', type=str, default = time.strftime("%Y%m%d", time.localtime()) )
+    
+    rundate = getYestoday()
+
+    parser.add_argument('--date', type=str, default = rundate )
     args = parser.parse_args()
-     
-    logger.info({"content":'---------------- [ %s ] ----------------'%(args.date)})
-     
-    ftp = MyFtp(host,args.date) 
-    ftp.Login(username, password) 
-    ftp.DownLoadByDate()
-    ftp.close()
+      
+    rundate = args.date
+
+    while True:
+        logger.info({"content":'---------------- [ %s ] ----------------'%(rundate)})
+        ftp = MyFtp(host,rundate) 
+        ftp.Login(username, password) 
+        ftp.DownLoadByDate()
+        ftp.close()
+
+        rundate = getYestoday()
+
+        # sleep 10 second 
+        time.sleep(10)
+   
+    
      
