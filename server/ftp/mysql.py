@@ -48,10 +48,10 @@ class MySQL:
 image, carlabel, brand, firms,model, version,carconfidence,\
 colorlabel,colortype,colorconfidence,\
 carclass,date,flag) \
-VALUES ('%s','%s','%s','%s','%s','%s',%s,'%s','%s',%s,'%s','%s',%s)" % \
+VALUES ('%s','%s','%s','%s','%s','%s',%s,'%s','%s',%s,'%s','%s')" % \
                (item['image'], item['carlabel'], item['brand'], item['firms'], item['model'], item['version'],item['carconfidence'], \
                item['colorlabel'],item['colortype'],item['colorconfidence'],\
-               item['carclass'],item['date'],item['flag'])
+               item['carclass'],item['date'])
         logger.info({"content":'insert analytical sql   > %s'%(sql)})  
         try:
             # 执行sql语句
