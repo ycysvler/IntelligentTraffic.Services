@@ -22,11 +22,11 @@ password = 'ftp' #'1qaz!QAZ'
 password = '1qaz!QAZ'
 #-------------------------------------------------------------------------
 
-def getYestoday():
+def getYesterday():
     now = datetime.datetime.now()
     delta = datetime.timedelta(days=-1)
     n_days = now + delta
-    yestoday = n_days.strftime('%Y-%m-%d')
+    yestoday = n_days.strftime('%Y%m%d')
     return yestoday
 
 def hello(msg,aa):
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     # 格式化成2016-03-20 11:45:39形式 
     parser = argparse.ArgumentParser()
     
-    rundate = getYestoday()
+    rundate = getYesterday()
 
     parser.add_argument('--date', type=str, default = rundate )
     args = parser.parse_args()
@@ -51,7 +51,7 @@ if __name__ == "__main__":
         ftp.DownLoadByDate()
         ftp.close()
 
-        rundate = getYestoday()
+        rundate = getYesterday()
 
         # sleep 10 second 
         time.sleep(10)
