@@ -3,12 +3,14 @@
 import MySQLdb
 import datetime
 import uuid
+import config
 
 from log import logger
 #-------------------------------------------------------------------------
+print 'config',config.mysql
 
 class MySQL:
-    def __init__(self, host="10.10.22.209", user="root", passwd="root"):
+    def __init__(self, host=config.mysql['host'], user=config.mysql['user'], passwd=config.mysql['passwd']):
         # 打开数据库连接
         self.db = MySQLdb.connect(host, user, passwd, "deeplearning", charset='utf8' )
         logger.info({"content":'mysql host=%s username=%s password=%s'%(host, user, passwd)})    
@@ -47,7 +49,7 @@ class MySQL:
         sql = "INSERT INTO ANALYTICAL(\
 image, carlabel, brand, firms,model, version,carconfidence,\
 colorlabel,colortype,colorconfidence,\
-carclass,date,flag) \
+carclass,date) \
 VALUES ('%s','%s','%s','%s','%s','%s',%s,'%s','%s',%s,'%s','%s')" % \
                (item['image'], item['carlabel'], item['brand'], item['firms'], item['model'], item['version'],item['carconfidence'], \
                item['colorlabel'],item['colortype'],item['colorconfidence'],\

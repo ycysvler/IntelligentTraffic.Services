@@ -9,6 +9,9 @@ import datetime
 import redisdb
 from urllib import urlencode
 
+reload(sys)
+sys.setdefaultencoding('utf-8') 
+
 sys.path.append("./dll")
 
 rds = redisdb.db()
