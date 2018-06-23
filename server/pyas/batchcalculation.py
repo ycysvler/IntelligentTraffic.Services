@@ -6,7 +6,7 @@ import time
 import os
 import cv2
 import datetime
-import redisdb
+#import redisdb
 import argparse
 from log import logger
 from urllib import urlencode
@@ -14,13 +14,12 @@ from mysql import MySQL
 reload(sys)
 sys.setdefaultencoding('utf-8') 
 
-sys.path.append("./dll")
-
-rds = redisdb.db()
+#rds = redisdb.db()
 mysql = MySQL()
 
 from IVehicleCalculator import vehicleMaster
-modelDir = r'/home/zhq/install_lib/vehicleDll/models'
+
+modelDir = r'/home/zzy/models'
 master = vehicleMaster(modelDir,0,True,True,False)
 
 # 图片名称提取日期
@@ -39,7 +38,7 @@ def parseDatetimeFromName(name):
 # 计算结果写数据库
 def adapterAnalysis(dbdate, snaptime, name, kakouid, vehicle ):
     analysis = mongodb.db(dbdate).analysis
-    print vehicle
+    #print vehicle
     item = {}
     item['name'] = name
     item['kakouid'] = kakouid
@@ -57,21 +56,23 @@ def adapterAnalysis(dbdate, snaptime, name, kakouid, vehicle ):
     item['platetype'] = ''
 
     # 如果没能计算出车型，就返回
-    if not ('vehicleType' in vehicle):
+    if not ('vehicleType' in vehicle)  or vehicle["vehicleType"] == None:
+        logger.warning({"content":'vehicletype is None > %s %s %s'%(dbdate, kakouid, name)})
         return
 
     vehicleTypes = vehicle['vehicleType']['category'].split('_')
-    item['vehicletype'] = vehicleTypes[0]
-    item['vehiclebrand'] = vehicleTypes[1]
-    item['vehiclemaker'] = vehicleTypes[2]
-    item['vehiclemodel'] = vehicleTypes[3]
-    item['vehicleyear'] = vehicleTypes[4]
+    item['vehiclecarclass'] = vehicleTypes[0]
+    item['vehicletype'] = vehicleTypes[1]
+    item['vehiclebrand'] = vehicleTypes[2]
+    item['vehiclemaker'] = vehicleTypes[3]
+    item['vehiclemodel'] = vehicleTypes[4] 
+    item['vehicleyear'] = vehicleTypes[5]
     item['vehiclecolor'] = vehicle['vehicleColor']['category']
     item['vehiclescore'] = round(float(vehicle['vehicleType']['score']),4)
 
     item['vehicleposture'] = 0 if vehicle["vehiclePosture"]['category'] ==  "车头" else 1
 
-    if 'vehicleStruct' in vehicle:
+    if 'vehicleStruct' in vehicle and vehicle["vehicleStruct"] <> None:
         item['withFrontWindowLabelInspection'] =1 if vehicle["vehicleStruct"]["withFrontWindowLabelInspection"] else 0
         item['withFrontWindowAccessories'] = 1 if vehicle["vehicleStruct"]["withFrontWindowAccessories"] else 0
         item['isTaxi'] = 1 if vehicle["vehicleStruct"]["isTaxi"] else 0
@@ -84,7 +85,7 @@ def adapterAnalysis(dbdate, snaptime, name, kakouid, vehicle ):
         item['withSkyRoof'] = 1 if vehicle["vehicleStruct"]["withSkyRoof"] else 0
 
         if 'driveSeatZone' in vehicle["vehicleStruct"]:
-            item['driverSeatZone'] = {
+            item['driverrdsSeatZone'] = {
                 "x": vehicle["vehicleStruct"]["driveSeatZone"][0],
                 "y": vehicle["vehicleStruct"]["driveSeatZone"][1],
                 "width": vehicle["vehicleStruct"]["driveSeatZone"][2] - vehicle["vehicleStruct"]["driveSeatZone"][0],
@@ -102,22 +103,36 @@ def adapterAnalysis(dbdate, snaptime, name, kakouid, vehicle ):
             }
 
     analysis.insert(item)
-
-    print item
+ 
     # 发送分析通知，供大数据分析
     data = {}
-    data["platenumber"] = urlencode(item["platenumber"])
-    data["platecolor"] = urlencode(item["platecolor"])
-    data["platetype"] = urlencode(item["platetype"])
-    data["vehiclebrand"] = urlencode(item["vehiclebrand"])
-    data["vehiclemodel"] = urlencode(item["vehiclemodel"])
-    data["vehicleyear"] = urlencode(item["vehicleyear"])
-    data["vehiclemaker"] = urlencode(item["vehiclemaker"])
-    data["vehiclecolor"] = urlencode(item["vehiclecolor"])
-    data["vehicletype"] = urlencode(item["vehicletype"])
-    data["vehiclescore"] = urlencode(item["vehiclescore"])
+#    data["platenumber"] = urlencode(item["platenumber"])
+#    data["platecolor"] = urlencode(item["platecolor"])
+#    data["platetype"] = urlencode(item["platetype"]) 
+#    data["vehiclebrand"] = urlencode(item["vehiclebrand"])
+#    data["vehiclemodel"] = urlencode(item["vehiclemodel"])
+#    data["vehicleyear"] = urlencode(item["vehicleyear"])
+#    data["vehiclemaker"] = urlencode(item["vehiclemaker"])
+#    data["vehiclecolor"] = urlencode(item["vehiclecolor"])
+#    data["vehicletype"] = urlencode(item["vehicletype"])
+#    data["vehiclescore"] = urlencode(item["vehiclescore"])
 
-    rds.publish('vehicle',data)
+    analitem = {}
+    analitem['image'] = item['name']
+    analitem['carlabel'] = 0
+    analitem['brand'] = item['vehiclebrand']
+    analitem['firms'] = item['vehiclemaker']
+    analitem['model'] = item['vehiclemodel']
+    analitem['version'] = item['vehicleyear']
+    analitem['carconfidence'] = item['vehiclescore']
+    analitem['colortype'] = item['vehiclecolor']
+    analitem['colorlabel'] = 0
+    analitem['colorconfidence'] = 1 
+    analitem['date'] = dbdate
+    analitem['carclass'] = item['vehiclecarclass']
+    
+    mysql.image_analytical(analitem)
+    #rds.publish('vehicle',data)
 
 # 昨天
 def getYesterday():
@@ -134,20 +149,23 @@ if __name__ == '__main__':
     date = getYesterday()
     #date = '20170427'
 
-    parser.add_argument('--date', type=str, default = rundate )
+    parser.add_argument('--date', type=str, default = date )
     args = parser.parse_args()
       
     date = args.date
 
 
     while True: 
-        logger.info({"calculation":'---------------- [ %s ] ----------------'%(date)})
+        logger.info({"content":'---------------- [ %s ] ----------------'%(date)})
         imagesources = mongodb.db(date).imagesource.find({'state':0}).limit(1)
+        
+        if os.path.isdir( 'temp' ) == False:
+            os.makedirs( 'temp' )
 
-        for item in imagesources:
-            print 'change state > ' , item['name']
-            mongodb.db(date).imagesource.update({'name':item['name']},{'$set':{'state':1}})
-            print 'calculation > ', item['name']
+        for item in imagesources: 
+            logger.info({"content":'mongodb change state    > %s %s'%(date, item['name'])})
+            mongodb.db(date).imagesource.update({'name':item['name']},{'$set':{'state':1}}) 
+            logger.info({"content":'calculation             > %s %s'%(date, item['name'])})
             start = time.time()
             imagepath = 'temp/' + item['name']
             file = open(imagepath, 'wb')
@@ -162,5 +180,6 @@ if __name__ == '__main__':
             for vehicle in result:
                 adapterAnalysis(date, '', item['name'], item['kakouid'], vehicle)
             mongodb.db(date).imagesource.update({'name': item['name']}, {'$set': {'state': 2}})
-            print "cost time > ",item['name'],"----", (end - start) * 1000, "ms"
+            logger.info({"content":'calculation             > %s %s'%(date, item['name'])})
+            logger.debug({"content":'cost time              > %s ms'%((end - start) * 1000)}) 
         time.sleep(10)
