@@ -7,14 +7,17 @@ import os
 import cv2
 import datetime
 import redisdb
+import argparse
+from log import logger
 from urllib import urlencode
-
+from mysql import MySQL
 reload(sys)
 sys.setdefaultencoding('utf-8') 
 
 sys.path.append("./dll")
 
 rds = redisdb.db()
+mysql = MySQL()
 
 from IVehicleCalculator import vehicleMaster
 modelDir = r'/home/zhq/install_lib/vehicleDll/models'
@@ -124,10 +127,21 @@ def getYesterday():
     return yesterday.strftime('%Y%m%d')
 
 if __name__ == '__main__':
+
+    # 格式化成2016-03-20 11:45:39形式 
+    parser = argparse.ArgumentParser()
+
     date = getYesterday()
-    date = '20170427'
-    while True:
-        print '** calculation ' + date + '***************************'
+    #date = '20170427'
+
+    parser.add_argument('--date', type=str, default = rundate )
+    args = parser.parse_args()
+      
+    date = args.date
+
+
+    while True: 
+        logger.info({"calculation":'---------------- [ %s ] ----------------'%(date)})
         imagesources = mongodb.db(date).imagesource.find({'state':0}).limit(1)
 
         for item in imagesources:
