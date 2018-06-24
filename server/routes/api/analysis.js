@@ -224,10 +224,15 @@ module.exports = function (router) {
                         let item = JSON.parse(JSON.stringify(results[i]));
 
                         // async call
-                        let kakou = await kkLogic.getKakou(item.kakouid);
-                        item["address"] = kakou.address;
-                        item["lng"] = kakou.lng;
-                        item["lat"] = kakou.lat;
+                        //let kakou = await kkLogic.getKakou(item.kakouid);
+                        //item["address"] = kakou.address;
+                        //item["lng"] = kakou.lng;
+                        //item["lat"] = kakou.lat;
+                        //temps.push(item);
+
+                        item["address"] = "望京中央花园";
+                        item["lng"] = 116.440488;
+                        item["lat"] = 39.951893;
                         temps.push(item);
                     }
 
