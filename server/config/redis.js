@@ -1,4 +1,4 @@
 /**
  * Created by yanggang on 2017/3/6.
  */
-module.exports = {port:6379,host:'192.168.31.200',password:'123456'};
+module.exports = {port:6379,host:'127.0.0.1',password:'123456'};
