@@ -56,9 +56,14 @@ def adapterAnalysis(dbdate, snaptime, name, kakouid, vehicle ):
     item['date'] = dt
     item['snaptime'] = item['date']
     item['platehasno'] = 0
-    item['platecolor'] = ''
-    item['platenumber'] = ''
     item['platetype'] = ''
+
+    if 'vehiclePlateLicense' in vehicle:
+        if vehicle["vehiclePlateLicense"] <> None:
+            item['platecolor'] = vehicle['vehiclePlateLicense']['color']
+            item['platenumber'] = vehicle['vehiclePlateLicense']['license']
+            item['platehasno'] = 1
+            
 
     # 如果没能计算出车型，就返回
     if not ('vehicleType' in vehicle)  or vehicle["vehicleType"] == None:

@@ -5,21 +5,21 @@ from vehicleTypeColor import IVehicleColorClassifier
 from vehicleTypeHead import IVehicleHeadClassifier
 from vehicleTypeTail import IVehicleTailClassifier
 from vehicleStruct import IVehicleStructure
-#from plateRecognize import IPlateRecognize
+from plateRecognize import IPlateRecognize
 
 import os
 import cv2
 import time
 
 class vehicleMaster:
-    def __init__(self,modelDir,gpu_id,vehicleColor=True,vehicleType=True,vehicleStruct=True,vehiclePlate=False):
+    def __init__(self,modelDir,gpu_id,vehicleColor=True,vehicleType=True,vehicleStruct=True):
         self.__vehicleZoneDetector = IVehicleZoneDetect(modelDir,gpu_id)
         self.__gpu_id = gpu_id
         self.__vehicleColor = vehicleColor
         self.__vehicleType = vehicleType
         self.__vehicleStruct = vehicleStruct
 
-        #self.__vehiclePlate = IPlateRecognize(modelDir)
+        self.__vehiclePlate = IPlateRecognize(modelDir)
 
         if self.__vehicleColor:
             self.__vehicleColorClassifier = IVehicleColorClassifier(modelDir,gpu_id)
@@ -51,7 +51,7 @@ class vehicleMaster:
             result = self.__getDetectStruct()
             result['vehicleZone'] = zone
             im_roi = im[zone[1]:zone[3],zone[0]:zone[2]]
-            #result['vehiclePlateLicense'] = self.__vehiclePlate.detect(im_roi.copy())
+            result['vehiclePlateLicense'] = self.__vehiclePlate.detect(im_roi.copy())
 
             if self.__vehicleColor:
                 colorResult = self.__vehicleColorClassifier.classify(im_roi)
