@@ -6,6 +6,7 @@ import sys
 import time
 import datetime
 import argparse
+import mongodb
 import json 
 import config
 from ftp import MyFTP
@@ -35,6 +36,14 @@ def hello(msg,aa):
     print 'hello > ', msg , aa
     time.sleep(5)
 
+def removeOldDb():
+    now = datetime.datetime.now()
+    delta = datetime.timedelta(days=-30)
+    n_days = now + delta
+    yestoday = n_days.strftime('%Y%m%d')
+    logger.info({"content":'drop [ %s ] imagesource '%(yestoday)}) 
+    mongodb.db(yestoday).imagesource.drop()
+
 if __name__ == "__main__":
     # 格式化成2016-03-20 11:45:39形式 
     parser = argparse.ArgumentParser()
@@ -47,7 +56,9 @@ if __name__ == "__main__":
     rundate = args.date
  
     while True:
-        logger.info({"content":'---------------- [ %s ] ----------------'%(rundate)})
+        removeOldDb()
+        
+        logger.info({"content":'down [ %s ] --------------------------------'%(rundate)})
         ftp = MyFTP(host,rundate) 
         ftp.Login(username, password) 
         ftp.DownLoadByDate()
