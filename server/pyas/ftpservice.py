@@ -30,6 +30,7 @@ def getYesterday():
     delta = datetime.timedelta(days=-1)
     n_days = now + delta
     yestoday = n_days.strftime('%Y%m%d')
+    #print 'yestody [%s]'%(yestoday)
     return yestoday
 
 def hello(msg,aa):
@@ -63,12 +64,12 @@ if __name__ == "__main__":
         ftp.Login(username, password) 
         ftp.DownLoadByDate()
         ftp.close()
-
-        rundate = getYesterday()
-
+ 
         # sleep 30 second
         logger.info({"content":'sleep %s`s '%(60)}) 
         time.sleep(60)
+
+        rundate = getYesterday()
    
     
      
