@@ -155,16 +155,26 @@ def getYesterday():
     yesterday = today-oneday
     return yesterday.strftime('%Y%m%d')
 
-def getMaxItem(items):
-    result = Null
+def getMaxItem(name, items):
+   
+    result = None
     max = 0
-    for vehicle in items:
-        width = vehicle['vehicleZone'][2] - vehicle['vehicleZone'][0]
-        height = vehicle['vehicleZone'][3] - vehicle['vehicleZone'][1]
-        if width * height > max
+    index = 0
+    i = 0
+    for vehicle in items: 
+        i = i + 1 
+        if 'vehicleZone' in vehicle: 
+            width = vehicle['vehicleZone'][2] - vehicle['vehicleZone'][0]
+            height = vehicle['vehicleZone'][3] - vehicle['vehicleZone'][1]
+    
+        #print '         %s  %s  %s'%(i, name, width * height)
+
+        if width * height > max:
             max = width * height
             result = vehicle
+            index = i
 
+    #print 'return : %s  %s  %s'%(index, name, max)
     return result
 
 
@@ -209,8 +219,9 @@ if __name__ == '__main__':
             #for vehicle in result:
             #    adapterAnalysis(date, '', item['name'], item['kakouid'], vehicle)
 
-            maxItem = getMaxItem(result)
-            adapterAnalysis(date, '', item['name'], item['kakouid'], maxItem)
+            maxItem = getMaxItem(item['name'], result)
+            if maxItem <> None:
+                adapterAnalysis(date, '', item['name'], item['kakouid'], maxItem)
 
             mongodb.db(date).imagesource.update({'name': item['name']}, {'$set': {'state': 2}})
             logger.info({"content":'calculation             > %s %s'%(date, item['name'])})
