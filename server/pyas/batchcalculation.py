@@ -57,6 +57,7 @@ def adapterAnalysis(dbdate, snaptime, name, kakouid, vehicle ):
     item['snaptime'] = item['date']
     item['platehasno'] = 0
     item['platetype'] = ''
+    item['platenumber'] = ''
 
     if 'vehiclePlateLicense' in vehicle:
         if vehicle["vehiclePlateLicense"] <> None:
@@ -141,6 +142,7 @@ def adapterAnalysis(dbdate, snaptime, name, kakouid, vehicle ):
     analitem['date'] = dbdate
     analitem['carclass'] = item['vehiclecarclass']
     analitem['vehicletype'] = item['vehicletype']
+    analitem['platenumber'] = item['platenumber']
 
     
     mysql.image_analytical(analitem)
@@ -152,6 +154,20 @@ def getYesterday():
     oneday = datetime.timedelta(days=1)
     yesterday = today-oneday
     return yesterday.strftime('%Y%m%d')
+
+def getMaxItem(items):
+    result = Null
+    max = 0
+    for vehicle in items:
+        width = vehicle['vehicleZone'][2] - vehicle['vehicleZone'][0]
+        height = vehicle['vehicleZone'][3] - vehicle['vehicleZone'][1]
+        if width * height > max
+            max = width * height
+            result = vehicle
+
+    return result
+
+
 
 if __name__ == '__main__':
 
@@ -189,8 +205,13 @@ if __name__ == '__main__':
             # 删除临时图片
             os.remove(imagepath)
             end = time.time()
-            for vehicle in result:
-                adapterAnalysis(date, '', item['name'], item['kakouid'], vehicle)
+
+            #for vehicle in result:
+            #    adapterAnalysis(date, '', item['name'], item['kakouid'], vehicle)
+
+            maxItem = getMaxItem(result)
+            adapterAnalysis(date, '', item['name'], item['kakouid'], maxItem)
+
             mongodb.db(date).imagesource.update({'name': item['name']}, {'$set': {'state': 2}})
             logger.info({"content":'calculation             > %s %s'%(date, item['name'])})
             logger.debug({"content":'cost time              > %s ms'%((end - start) * 1000)}) 
