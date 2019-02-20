@@ -16,11 +16,11 @@ from flask import Flask,request ,Response
 app_conn, service_conn = Pipe()
 
 def app_progress():
-    app.run(debug=False,host='0.0.0.0', port=7777)
+    app.run(debug=False,host='0.0.0.0', port=4010)
 
 # 这里是一个单独的进程，用于计算特征
 def caculator_progress(conn):
-    modelDir = r'/home/zhq/install_lib/vehicleDll/models'
+    modelDir = r'/root/vehicle/models'
     master = vehicleMaster(modelDir, 0, True, True, False)
     print 'model init complete!'
     # 下面是计算流程
